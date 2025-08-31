@@ -1,21 +1,15 @@
 services:
   frontend:
     image: node:20-bookworm
-    container_name: unitn-oj-frontend
     working_dir: /workspace/frontend
+    container_name: unitn-oj-frontend
     volumes: [ "..:/workspace" ]
-    command: bash -lc "corepack enable && corepack prepare pnpm@8.15.5 --activate && pnpm install && pnpm dev --host 0.0.0.0 --port 5173"
-
-  edge:
-    image: node:20-bookworm
-    container_name: unitn-oj-edge
-    working_dir: /workspace
-    volumes: [ "..:/workspace" ]
-    command: bash -lc "corepack enable && corepack prepare pnpm@8.15.5 --activate && npm i -g wrangler && wrangler pages dev .devcontainer/assets --local --port 8788 --ip 0.0.0.0"
+    command: bash -lc "corepack enable && corepack prepare pnpm@8.15.5 --activate && pnpm install && pnpm build && npx wrangler pages dev build --local --port 8788 --ip 0.0.0.0"
+    expose: [ "8788" ]
 
   proxy:
     image: caddy:2-alpine
     container_name: unitn-oj-proxy
     ports: [ "8080:8080" ]
     volumes: [ "./caddy/Caddyfile:/etc/caddy/Caddyfile:ro" ]
-    depends_on: [ "frontend", "edge" ]
+    depends_on: [ "frontend" ]
