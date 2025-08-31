@@ -1,0 +1,14 @@
+{
+  "dockerComposeFile": "compose.yaml",
+  "service": "frontend",
+  "workspaceFolder": "/workspace",
+  "shutdownAction": "stopCompose",
+  "postCreateCommand": "corepack enable && corepack prepare pnpm@8.15.5 --activate && npm i -g wrangler",
+  "customizations": {
+    "vscode": {
+      "extensions": ["svelte.svelte-vscode", "dbaeumer.vscode-eslint"]
+    }
+  },
+  "forwardPorts": [8080],
+  "runServices": ["frontend", "edge", "proxy"]
+}

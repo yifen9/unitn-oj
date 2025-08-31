@@ -1,0 +1,20 @@
+services:
+  frontend:
+    image: node:20-bookworm
+    working_dir: /workspace/frontend
+    command: bash -lc "corepack enable && corepack prepare pnpm@8.15.5 --activate && pnpm install && pnpm dev --host 0.0.0.0 --port 5173"
+    volumes: [ "..:/workspace" ]
+    expose: ["5173"]
+
+  edge:
+    image: node:20-bookworm
+    working_dir: /workspace
+    command: bash -lc "corepack enable && corepack prepare pnpm@8.15.5 --activate && npm i -g wrangler && wrangler pages dev .devcontainer/assets --local --port 8788 --ip 0.0.0.0"
+    volumes: [ "..:/workspace" ]
+    expose: ["8788"]
+
+  proxy:
+    image: caddy:2-alpine
+    volumes: [ "./caddy/Caddyfile:/etc/caddy/Caddyfile:ro" ]
+    ports: [ "8080:8080" ]
+    depends_on: [ "frontend", "edge" ]

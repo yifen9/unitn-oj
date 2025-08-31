@@ -1,0 +1,7 @@
+:8080
+handle_path /api* {
+    reverse_proxy edge:8788
+}
+handle {
+    reverse_proxy frontend:5173
+}
