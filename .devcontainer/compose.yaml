@@ -4,12 +4,5 @@ services:
     working_dir: /workspace/frontend
     container_name: unitn-oj-frontend
     volumes: [ "..:/workspace" ]
-    command: bash -lc "corepack enable && corepack prepare pnpm@8.15.5 --activate && pnpm install && pnpm build && npx wrangler pages dev build --local --port 8788 --ip 0.0.0.0"
-    expose: [ "8788" ]
-
-  proxy:
-    image: caddy:2-alpine
-    container_name: unitn-oj-proxy
+    command: bash -lc "corepack enable && corepack prepare pnpm@8.15.5 --activate && pnpm install && pnpm build && npx wrangler types --path=/workspace/frontend/functions/types.d.ts && npx wrangler pages dev build --local --port 8080 --ip 0.0.0.0"
     ports: [ "8080:8080" ]
-    volumes: [ "./caddy/Caddyfile:/etc/caddy/Caddyfile:ro" ]
-    depends_on: [ "frontend" ]
