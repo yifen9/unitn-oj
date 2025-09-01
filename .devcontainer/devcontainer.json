@@ -3,7 +3,6 @@
   "service": "frontend",
   "workspaceFolder": "/workspace",
   "shutdownAction": "stopCompose",
-  "postCreateCommand": "corepack enable && corepack prepare pnpm@8.15.5 --activate && npm i -g wrangler",
   "customizations": {
     "vscode": {
       "extensions": [
