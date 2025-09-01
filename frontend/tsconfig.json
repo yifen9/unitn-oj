@@ -16,7 +16,10 @@
 			"@cloudflare/worker-types"
 		],
 		"include": [
-			"functions/**/*.ts"
+			"src/**/*.ts",
+			"src/**/*.svelte",
+			"functions/**/*.ts",
+			"tests/**/*.ts"
 		]
 	}
 	// Path aliases are handled by https://svelte.dev/docs/kit/configuration#alias
