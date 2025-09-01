@@ -32,8 +32,7 @@ export const onRequest: PagesFunction = async ({ request, env }) => {
     email = row.email.toLowerCase();
   } catch (e) {
     console.error('D1 select failed:', e);
-    return isProd ? jsonError('INTERNAL', 'database error', 500)
-                  : jsonError('INTERNAL', 'database error (dev)', 500);
+    if (isProd) return jsonError('INTERNAL', 'database error', 500);
   }
 
   const nowIso = new Date().toISOString();
@@ -48,8 +47,7 @@ export const onRequest: PagesFunction = async ({ request, env }) => {
     ]);
   } catch (e) {
     console.error('D1 upsert/delete failed:', e);
-    return isProd ? jsonError('INTERNAL', 'database error', 500)
-                  : jsonError('INTERNAL', 'database error (dev)', 500);
+    if (isProd) return jsonError('INTERNAL', 'database error', 500);
   }
 
   const sessionTtlSeconds = Number(env.SESSION_TTL_SECONDS ?? 7 * 24 * 3600);
