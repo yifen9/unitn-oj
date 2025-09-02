@@ -1,0 +1,28 @@
+import { describe, it, expect } from 'vitest'
+import * as mod from '../functions/api/v1/schools/index'
+import { makeCtx, makeD1Mock, readJson } from './helpers'
+
+const DEV_ENV = { APP_ENV: 'development' }
+const PROD_ENV = { APP_ENV: 'production' }
+
+describe('GET /api/v1/schools', () => {
+  it('200 returns list', async () => {
+    const { db, state } = makeD1Mock()
+    state.allResults = [{ schoolId: 'ror:unitn', name: 'UNITN' }]
+    const ctx = makeCtx({ url: 'http://x/api/v1/schools', env: { ...DEV_ENV, DB: db } })
+    const res = await (mod as any).onRequestGet(ctx)
+    expect(res.status).toBe(200)
+    const j = await readJson(res)
+    expect(j.ok).toBe(true)
+    expect(Array.isArray(j.data)).toBe(true)
+    expect(j.data[0].schoolId).toBe('ror:unitn')
+  })
+
+  it('500 INTERNAL when DB throws in prod', async () => {
+    const { db } = makeD1Mock()
+    ;(db as any).prepare = () => ({ all: async () => { throw new Error('boom') }, bind: () => ({ all: async () => ({ results: [] }), first: async () => null, run: async () => ({}) }), first: async () => null, run: async () => ({}) })
+    const ctx = makeCtx({ url: 'http://x/api/v1/schools', env: { ...PROD_ENV, DB: db } })
+    const res = await (mod as any).onRequestGet(ctx)
+    expect(res.status).toBe(500)
+  })
+})

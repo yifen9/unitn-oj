@@ -4,6 +4,7 @@ export type D1Stmt = {
   bind: (...args: unknown[]) => D1Stmt;
   run: () => Promise<any>;
   first: <T>() => Promise<T | null>;
+  all: <T>() => Promise<{ results: T[] }>;
 };
 export type D1DatabaseLike = {
   prepare: (sql: string) => D1Stmt;
@@ -33,16 +34,12 @@ export function makeCtx<TEnv extends Record<string, any>>(opts: {
 
 export function makeD1Mock() {
   const state = {
-    /** last prepared SQL (most recent) */
     lastSQL: '' as string,
-    /** last .bind() args (most recent statement) */
     lastArgs: [] as unknown[],
-    /** default result for .first() unless overridden by per-test monkey patch  */
     firstResult: null as any,
-    /** record of all prepared SQLs in order */
+    allResults: [] as any[],
     prepared: [] as string[],
-    /** count of run/first calls */
-    counters: { run: 0, first: 0 },
+    counters: { run: 0, first: 0, all: 0 },
   };
 
   const mkStmt = (): D1Stmt => {
@@ -58,6 +55,10 @@ export function makeD1Mock() {
       first: async <T>() => {
         state.counters.first += 1;
         return state.firstResult as T | null;
+      },
+      all: async <T>() => {
+        state.counters.all += 1;
+        return { results: state.allResults as T[] };
       },
     };
     return stmt;

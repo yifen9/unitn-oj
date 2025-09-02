@@ -1,0 +1,1 @@
+[![CI](https://github.com/yifen9/unitn-oj/actions/workflows/ci.yml/badge.svg)](https://github.com/yifen9/unitn-oj/actions/workflows/ci.yml)
