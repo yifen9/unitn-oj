@@ -26,7 +26,7 @@ export const onRequest: PagesFunction = async ({ request, env }) => {
 
     if (!row) return jsonError('UNAUTHENTICATED', 'token not found', 401);
     if (row.expires_at < Math.floor(Date.now() / 1000)) {
-      await env.DB.prepare('DELETE FROM magic_tokens WHERE token=?1').bind(token).run().catch(() => {});
+      await env.DB.prepare('DELETE FROM magic_tokens WHERE token=?1').bind(token).run().catch(() => { });
       return jsonError('UNAUTHENTICATED', 'token expired', 401);
     }
     email = row.email.toLowerCase();
@@ -63,7 +63,7 @@ export const onRequest: PagesFunction = async ({ request, env }) => {
     'Path=/',
     `Max-Age=${sessionTtlSeconds}`,
     isProd ? 'SameSite=Lax' : 'SameSite=Lax',
-    isProd ? 'Secure'       : ''
+    isProd ? 'Secure' : ''
   ].filter(Boolean).join('; ');
   headers.append('set-cookie', cookieAttrs);
 
