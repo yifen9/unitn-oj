@@ -3,9 +3,9 @@
 // Runtime types generated with workerd@1.20250829.0 2025-09-01 
 declare namespace Cloudflare {
 	interface Env {
-		APP_MODE: "dev";
-		EMAIL_ALLOWED_DOMAIN: "studenti.unitn.it";
-		TOKEN_TTL_SECONDS: "300";
+		APP_ENV: "dev";
+		AUTH_ALLOWED_DOMAIN: "studenti.unitn.it";
+		AUTH_TOKEN_TTL_SECONDS: "300";
 		DB: D1Database;
 	}
 }
