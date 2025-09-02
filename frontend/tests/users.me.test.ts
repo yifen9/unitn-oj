@@ -79,7 +79,8 @@ describe('GET /api/v1/users/me', () => {
   it('500 INTERNAL when DB throws in prod', async () => {
     const { db } = makeD1Mock()
     const email = 'alice@studenti.unitn.it'
-    const sid = await signSession(DEV_ENV.SESSION_SECRET, email)
+    const PROD_ENV = { APP_ENV: 'prod', AUTH_SESSION_TTL_SECONDS: '3600', SESSION_SECRET: 'prod-secret' }
+    const sid = await signSession(PROD_ENV.SESSION_SECRET, email)
     ;(db as any).prepare = () => {
       return { bind: () => ({ first: async () => { throw new Error('boom') }, run: async () => {} }) }
     }
@@ -87,7 +88,7 @@ describe('GET /api/v1/users/me', () => {
     const ctx = makeCtx({
       url: 'http://x/api/v1/users/me',
       headers: { cookie: `sid=${sid}` },
-      env: { APP_ENV: 'prod', AUTH_SESSION_TTL_SECONDS: '3600', SESSION_SECRET: 'prod-secret', DB: db },
+      env: { ...PROD_ENV, DB: db },
     })
 
     const res = await (mod as any).onRequestGet(ctx)
