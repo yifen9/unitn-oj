@@ -6,14 +6,14 @@ const DEV_ENV = {
   APP_ENV: 'dev',
   AUTH_ALLOWED_DOMAIN: 'studenti.unitn.it',
   AUTH_TOKEN_TTL_SECONDS: '300',
-  SESSION_SECRET: 'dev-secret',
+  AUTH_SESSION_SECRET: 'dev-secret',
 };
 
 const PROD_ENV = {
   APP_ENV: 'prod',
   AUTH_ALLOWED_DOMAIN: 'studenti.unitn.it',
   AUTH_TOKEN_TTL_SECONDS: '300',
-  SESSION_SECRET: 'prod-secret',
+  AUTH_SESSION_SECRET: 'prod-secret',
 };
 
 describe('POST /api/v1/auth/requestLink', () => {
@@ -104,7 +104,7 @@ describe('POST /api/v1/auth/requestLink', () => {
     expect(res.status).toBe(200);
     const j = await readJson(res);
     expect(j.ok).toBe(true);
-    expect(j.data.magicUrl).toMatch(/\/api\/v1\/auth\/verify\?token=/);
+    expect(j.data.magicUrl).toMatch(/\/auth\/verify\?token=/);
 
     expect(state.lastSQL).toMatch(/INSERT\s+INTO\s+magic_tokens/i);
     expect(state.lastArgs.length).toBe(3);
@@ -128,7 +128,7 @@ describe('POST /api/v1/auth/requestLink', () => {
     expect(j.data).toBeUndefined();
   });
 
-  it('500 INTERNAL on D1 insert error in production; dev tolerates', async () => {
+  it('500 INTERNAL on D1 insert error in prod; dev tolerates', async () => {
     const { db } = makeD1Mock();
     const origPrepare = db.prepare.bind(db);
     (db as any).prepare = (sql: string) => {

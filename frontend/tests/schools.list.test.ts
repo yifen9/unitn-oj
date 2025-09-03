@@ -3,7 +3,7 @@ import * as mod from '../functions/api/v1/schools/index'
 import { makeCtx, makeD1Mock, readJson } from './helpers'
 
 const DEV_ENV = { APP_ENV: 'development' }
-const PROD_ENV = { APP_ENV: 'production' }
+const PROD_ENV = { APP_ENV: 'prod' }
 
 describe('GET /api/v1/schools', () => {
   it('200 returns list', async () => {

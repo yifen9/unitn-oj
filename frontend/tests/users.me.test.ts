@@ -6,7 +6,7 @@ import { signSession } from '../functions/_lib/auth'
 const DEV_ENV = {
   APP_ENV: 'dev',
   AUTH_SESSION_TTL_SECONDS: '3600',
-  SESSION_SECRET: 'dev-secret',
+  AUTH_SESSION_SECRET: 'dev-secret',
 }
 
 describe('GET /api/v1/users/me', () => {
@@ -34,7 +34,7 @@ describe('GET /api/v1/users/me', () => {
   it('200 when session valid and user exists', async () => {
     const { db, state } = makeD1Mock()
     const email = 'alice@studenti.unitn.it'
-    const sid = await signSession(DEV_ENV.SESSION_SECRET, email)
+    const sid = await signSession(DEV_ENV.AUTH_SESSION_SECRET, email)
     state.firstResult = { userId: 'u_12345678', email, nickname: 'alice', createdAt: 1234567890 }
 
     const origPrepare = db.prepare.bind(db)
@@ -64,7 +64,7 @@ describe('GET /api/v1/users/me', () => {
   it('401 when user not found', async () => {
     const { db } = makeD1Mock()
     const email = 'ghost@studenti.unitn.it'
-    const sid = await signSession(DEV_ENV.SESSION_SECRET, email)
+    const sid = await signSession(DEV_ENV.AUTH_SESSION_SECRET, email)
 
     const ctx = makeCtx({
       url: 'http://x/api/v1/users/me',
@@ -79,8 +79,8 @@ describe('GET /api/v1/users/me', () => {
   it('500 INTERNAL when DB throws in prod', async () => {
     const { db } = makeD1Mock()
     const email = 'alice@studenti.unitn.it'
-    const PROD_ENV = { APP_ENV: 'prod', AUTH_SESSION_TTL_SECONDS: '3600', SESSION_SECRET: 'prod-secret' }
-    const sid = await signSession(PROD_ENV.SESSION_SECRET, email)
+    const PROD_ENV = { APP_ENV: 'prod', AUTH_SESSION_TTL_SECONDS: '3600', AUTH_SESSION_SECRET: 'prod-secret' }
+    const sid = await signSession(PROD_ENV.AUTH_SESSION_SECRET, email)
     ;(db as any).prepare = () => {
       return { bind: () => ({ first: async () => { throw new Error('boom') }, run: async () => {} }) }
     }

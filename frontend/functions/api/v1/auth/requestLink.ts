@@ -38,7 +38,7 @@ export const onRequestPost: PagesFunction = async ({ request, env }) => {
   }
 
   const url = new URL(request.url);
-  url.pathname = '/api/v1/auth/verify';
+  url.pathname = '/auth/verify';
   url.searchParams.set('token', token);
 
   if (prod) return httpJson({ ok: true });

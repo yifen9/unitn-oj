@@ -5,13 +5,13 @@ import { makeCtx, makeD1Mock, readJson } from './helpers';
 const DEV_ENV = {
   APP_ENV: 'dev',
   AUTH_SESSION_TTL_SECONDS: '86400',
-  SESSION_SECRET: 'dev-secret',
+  AUTH_SESSION_SECRET: 'dev-secret',
 };
 
 const PROD_ENV = {
   APP_ENV: 'prod',
   AUTH_SESSION_TTL_SECONDS: '86400',
-  SESSION_SECRET: 'prod-secret',
+  AUTH_SESSION_SECRET: 'prod-secret',
 };
 
 describe('/api/v1/auth/verify', () => {
@@ -95,7 +95,7 @@ describe('/api/v1/auth/verify', () => {
     expect(state.lastSQL).toMatch(/DELETE\s+FROM\s+magic_tokens/i);
   });
 
-  it('500 INTERNAL on D1 SELECT error in production', async () => {
+  it('500 INTERNAL on D1 SELECT error in prod', async () => {
     const { db } = makeD1Mock();
     const origPrepare = db.prepare.bind(db);
     (db as any).prepare = (sql: string) => {
@@ -181,7 +181,7 @@ describe('/api/v1/auth/verify', () => {
     expect(setCookie).toMatch(/sid=/);
   });
 
-  it('500 INTERNAL on D1 upsert/delete error in production', async () => {
+  it('500 INTERNAL on D1 upsert/delete error in prod', async () => {
     const { db, state } = makeD1Mock();
     state.firstResult = { email: 'alice@studenti.unitn.it', expires_at: Math.floor(Date.now()/1000) + 60 };
 

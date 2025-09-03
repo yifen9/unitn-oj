@@ -7,7 +7,7 @@ export const onRequestGet: PagesFunction = async ({ request, env }) => {
   if (!sid) return httpError('UNAUTHENTICATED', 'sid cookie required', 401)
 
   const sessionTtl = getOptionalNumber(env, 'AUTH_SESSION_TTL_SECONDS', 7 * 24 * 3600)
-  const secret = getRequired(env, 'SESSION_SECRET')
+  const secret = getRequired(env, 'AUTH_SESSION_SECRET')
 
   let email = ''
   try {
@@ -19,9 +19,9 @@ export const onRequestGet: PagesFunction = async ({ request, env }) => {
 
   try {
     const row = await env.DB
-      .prepare('SELECT user_id as userId, email, nickname, created_at as createdAt FROM users WHERE email=?1')
+      .prepare('SELECT user_id as userId, email, created_at as createdAt FROM users WHERE email=?1')
       .bind(email)
-      .first<{ userId: string; email: string; nickname: string | null; createdAt: number }>()
+      .first<{ userId: string; email: string; createdAt: number }>()
     if (!row) return httpError('UNAUTHENTICATED', 'user not found', 401)
     return httpJson({ ok: true, data: row })
   } catch (e) {

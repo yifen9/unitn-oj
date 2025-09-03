@@ -22,7 +22,7 @@ export const onRequestPost: PagesFunction = async ({ request, env, params }) => 
   const sid = readSidFromCookie(request)
   if (!sid) return httpError('UNAUTHENTICATED', 'sid cookie required', 401)
   const sessionTtl = getOptionalNumber(env, 'AUTH_SESSION_TTL_SECONDS', 7 * 24 * 3600)
-  const secret = getRequired(env, 'SESSION_SECRET')
+  const secret = getRequired(env, 'AUTH_SESSION_SECRET')
 
   let email = ''
   try {

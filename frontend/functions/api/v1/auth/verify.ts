@@ -1,4 +1,4 @@
-import { httpJson, httpError, readJson } from '../../../_lib/http';
+import { httpError, readJson } from '../../../_lib/http';
 import { getOptionalNumber, getRequired, isProd } from '../../../_lib/env';
 import { signSession, userIdFromEmail } from '../../../_lib/auth';
 
@@ -50,7 +50,7 @@ export const onRequest: PagesFunction = async ({ request, env }) => {
   }
 
   const sessionTtlSeconds = getOptionalNumber(env, 'AUTH_SESSION_TTL_SECONDS', 7 * 24 * 3600);
-  const secret = getRequired(env, 'SESSION_SECRET');
+  const secret = getRequired(env, 'AUTH_SESSION_SECRET');
   const sid = await signSession(secret || 'dev-secret', email);
 
   const headers = new Headers({ 'content-type': 'application/json' });

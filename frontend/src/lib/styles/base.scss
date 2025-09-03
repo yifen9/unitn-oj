@@ -1,0 +1,19 @@
+:root { --gap: 12px; }
+* { box-sizing: border-box; }
+html, body, #svelte { height: 100%; margin: 0; }
+
+.app {
+  min-height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.header, .footer { padding: 10px 14px; }
+.main {
+  padding: var(--gap);
+  display: grid;
+  grid-template-columns: 220px 1fr 280px;
+  gap: var(--gap);
+}
+.left, .right, .center { min-height: 200px; }
+a { text-decoration: none; }
