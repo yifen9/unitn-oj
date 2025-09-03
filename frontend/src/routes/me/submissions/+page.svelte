@@ -57,7 +57,7 @@
         {#each items as s}
           <tr>
             <td>{fmt(s.createdAt)}</td>
-            <td><a href={`/api/v1/submissions/${encodeURIComponent(s.submissionId)}`}>{s.submissionId}</a></td>
+            <td><a href={`/api/v1/submissions/${encodeURIComponent(s.submissionId)}`} rel="external">{s.submissionId}</a></td>
             <td>{s.problemId}</td>
             <td>{s.status}</td>
           </tr>
