@@ -4,7 +4,7 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"dev": "vite",
+		"dev": "pnpm build && pnpm db:apply:local && pnpm dev:api",
 		"build": "vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
@@ -12,8 +12,10 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint .",
-
-		"test": "vitest --run"
+		"test": "vitest --run",
+		"db:apply:local": "wrangler d1 migrations apply DB --local",
+		"db:execute:local": "wrangler d1 execute DB --local",
+		"dev:api": "wrangler pages dev .svelte-kit/cloudflare --local --port 8080 --ip 0.0.0.0"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20250831.0",
@@ -29,13 +31,14 @@
 		"globals": "^16.0.0",
 		"prettier": "^3.4.2",
 		"prettier-plugin-svelte": "^3.3.3",
+		"sass-embedded": "^1.92.0",
 		"svelte": "^5.0.0",
 		"svelte-check": "^4.0.0",
 		"typescript": "^5.0.0",
 		"typescript-eslint": "^8.20.0",
 		"vite": "^7.0.4",
 		"vitest": "^3.2.4",
-		"sass-embedded": "^1.92.0"
+		"wrangler": "^4.33.2"
 	},
 	"pnpm": {
 		"onlyBuiltDependencies": [
