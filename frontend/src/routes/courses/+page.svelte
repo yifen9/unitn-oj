@@ -1,32 +1,43 @@
-<script lang="ts">
-  export let data: { courses: { courseId: string; schoolId: string; name: string }[]; schoolId: string }
-  let schoolId = data.schoolId
-  function applyFilter() {
-    const p = new URL(location.href)
-    if (schoolId) p.searchParams.set('schoolId', schoolId)
-    else p.searchParams.delete('schoolId')
-    location.href = p.toString()
+<script>
+  import { onMount } from 'svelte';
+
+  let courses = [];
+  let message = '';
+
+  async function loadCourses() {
+    const res = await fetch('/api/v1/courses');
+    const j = await res.json();
+    if (j.ok) courses = j.data;
+    else message = j.error?.message || 'Failed to load courses';
   }
+
+  onMount(loadCourses);
 </script>
 
 <h1>Courses</h1>
 
-<div style="display:flex;gap:8px;align-items:center;margin:8px 0;">
-  <input placeholder="Filter by schoolId (optional)" bind:value={schoolId} />
-  <button on:click={applyFilter}>Apply</button>
-</div>
-
-{#if data.courses.length === 0}
-  <p>No courses found.</p>
+{#if message}
+  <p class="error">{message}</p>
+{:else if courses.length === 0}
+  <p>No courses available.</p>
 {:else}
-  <ul>
-    {#each data.courses as c}
-      <li>
-        <a href={`/courses/${encodeURIComponent(c.courseId)}/problems`}>{c.name}</a>
-        <small style="margin-left:8px;">[{c.courseId}] · {c.schoolId}</small>
-      </li>
-    {/each}
-  </ul>
+  <table border="1" cellpadding="4">
+    <thead>
+      <tr><th>Name</th><th>Action</th></tr>
+    </thead>
+    <tbody>
+      {#each courses as c}
+        <tr>
+          <td>{c.name}</td>
+          <td>
+            <a href={`/courses/${c.courseId}`}>View Course</a>
+          </td>
+        </tr>
+      {/each}
+    </tbody>
+  </table>
 {/if}
 
-<p><a href="/">Back to Home</a></p>
+<style>
+  .error { color: red; }
+</style>
