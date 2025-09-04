@@ -1,14 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { signSession } from "../src/lib/api/auth";
-import * as mod from "../src/routes/api/v1/problems/[id]/submissions/index/+server";
-import { makeCtx, makeD1Mock, readJson } from "./helpers";
+import { POST } from "../src/routes/api/v1/problems/[id]/submissions/index/+server";
+import { makeD1Mock, makeEvent, readJson } from "./helpers";
 
-const DEV_ENV = {
+const DEV = {
 	APP_ENV: "development",
 	AUTH_SESSION_TTL_SECONDS: "3600",
 	AUTH_SESSION_SECRET: "dev-secret",
 };
-const PROD_ENV = {
+const PROD = {
 	APP_ENV: "prod",
 	AUTH_SESSION_TTL_SECONDS: "3600",
 	AUTH_SESSION_SECRET: "prod-secret",
@@ -17,78 +17,83 @@ const PROD_ENV = {
 describe("POST /api/v1/problems/{id}/submissions", () => {
 	it("400 when problemId missing", async () => {
 		const { db } = makeD1Mock();
-		const ctx = makeCtx({
+		const e = makeEvent({
 			url: "http://x/api/v1/problems//submissions",
 			method: "POST",
 			headers: { "content-type": "application/json" },
 			body: JSON.stringify({ code: "x" }),
-			env: { ...DEV_ENV, DB: db },
+			env: { ...DEV, DB: db },
+			params: {},
 		});
-		const res = await (mod as any).onRequestPost(ctx);
+		const res = await POST(e as any);
 		expect(res.status).toBe(400);
 	});
 
 	it("401 when no sid", async () => {
 		const { db } = makeD1Mock();
-		const ctx = makeCtx({
+		const e = makeEvent({
 			url: "http://x/api/v1/problems/p1/submissions",
 			method: "POST",
 			headers: { "content-type": "application/json" },
 			body: JSON.stringify({ code: "x" }),
-			env: { ...DEV_ENV, DB: db },
+			env: { ...DEV, DB: db },
+			params: { id: "p1" },
 		});
-		const res = await (mod as any).onRequestPost(ctx);
+		const res = await POST(e as any);
 		expect(res.status).toBe(401);
 	});
 
 	it("415 when content-type not json", async () => {
 		const { db } = makeD1Mock();
 		const sid = await signSession(
-			DEV_ENV.AUTH_SESSION_SECRET,
+			DEV.AUTH_SESSION_SECRET,
 			"alice@studenti.unitn.it",
 		);
-		const ctx = makeCtx({
+		const e = makeEvent({
 			url: "http://x/api/v1/problems/p1/submissions",
 			method: "POST",
 			headers: { cookie: `sid=${sid}`, "content-type": "text/plain" },
 			body: "code=abc",
-			env: { ...DEV_ENV, DB: db },
+			env: { ...DEV, DB: db },
+			params: { id: "p1" },
 		});
-		const res = await (mod as any).onRequestPost(ctx);
+		const res = await POST(e as any);
 		expect(res.status).toBe(415);
 	});
 
 	it("400 when code missing or empty", async () => {
 		const { db } = makeD1Mock();
 		const sid = await signSession(
-			DEV_ENV.AUTH_SESSION_SECRET,
+			DEV.AUTH_SESSION_SECRET,
 			"alice@studenti.unitn.it",
 		);
-		const ctx = makeCtx({
+		const e = makeEvent({
 			url: "http://x/api/v1/problems/p1/submissions",
 			method: "POST",
 			headers: { cookie: `sid=${sid}`, "content-type": "application/json" },
 			body: JSON.stringify({}),
-			env: { ...DEV_ENV, DB: db },
+			env: { ...DEV, DB: db },
+			params: { id: "p1" },
 		});
-		const res = await (mod as any).onRequestPost(ctx);
+		const res = await POST(e as any);
 		expect(res.status).toBe(400);
 	});
 
 	it("201 creates submission in dev", async () => {
 		const { db, state } = makeD1Mock();
 		const sid = await signSession(
-			DEV_ENV.AUTH_SESSION_SECRET,
+			DEV.AUTH_SESSION_SECRET,
 			"alice@studenti.unitn.it",
 		);
-		const ctx = makeCtx({
+		const e = makeEvent({
 			url: "http://x/api/v1/problems/p1/submissions",
 			method: "POST",
 			headers: { cookie: `sid=${sid}`, "content-type": "application/json" },
 			body: JSON.stringify({ code: "print(1)" }),
-			env: { ...DEV_ENV, DB: db },
+			env: { ...DEV, DB: db, QUEUE_SUBMISSIONS: { send: async () => {} } },
+			params: { id: "p1" },
 		});
-		const res = await (mod as any).onRequestPost(ctx);
+		const res = await POST(e as any);
 		expect(res.status).toBe(201);
 		const j = await readJson(res);
 		expect(j.ok).toBe(true);
@@ -107,17 +112,18 @@ describe("POST /api/v1/problems/{id}/submissions", () => {
 			}),
 		});
 		const sid = await signSession(
-			PROD_ENV.AUTH_SESSION_SECRET,
+			PROD.AUTH_SESSION_SECRET,
 			"alice@studenti.unitn.it",
 		);
-		const ctx = makeCtx({
+		const e = makeEvent({
 			url: "http://x/api/v1/problems/p1/submissions",
 			method: "POST",
 			headers: { cookie: `sid=${sid}`, "content-type": "application/json" },
 			body: JSON.stringify({ code: "x" }),
-			env: { ...PROD_ENV, DB: db },
+			env: { ...PROD, DB: db, QUEUE_SUBMISSIONS: { send: async () => {} } },
+			params: { id: "p1" },
 		});
-		const res = await (mod as any).onRequestPost(ctx);
+		const res = await POST(e as any);
 		expect(res.status).toBe(500);
 	});
 });

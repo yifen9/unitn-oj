@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
-import * as mod from "../src/routes/api/v1/schools/index/+server";
-import { makeCtx, makeD1Mock, readJson } from "./helpers";
+import { describe, expect, it } from "bun:test";
+import { GET } from "../src/routes/api/v1/schools/index/+server";
+import { makeD1Mock, makeEvent, readJson } from "./helpers";
 
 const DEV_ENV = { APP_ENV: "development" };
 const PROD_ENV = { APP_ENV: "prod" };
@@ -9,11 +9,11 @@ describe("GET /api/v1/schools", () => {
 	it("200 returns list", async () => {
 		const { db, state } = makeD1Mock();
 		state.allResults = [{ schoolId: "ror:unitn", name: "UNITN" }];
-		const ctx = makeCtx({
+		const event = makeEvent({
 			url: "http://x/api/v1/schools",
 			env: { ...DEV_ENV, DB: db },
 		});
-		const res = await (mod as any).onRequestGet(ctx);
+		const res = await GET(event as any);
 		expect(res.status).toBe(200);
 		const j = await readJson(res);
 		expect(j.ok).toBe(true);
@@ -35,11 +35,11 @@ describe("GET /api/v1/schools", () => {
 			first: async () => null,
 			run: async () => ({}),
 		});
-		const ctx = makeCtx({
+		const event = makeEvent({
 			url: "http://x/api/v1/schools",
 			env: { ...PROD_ENV, DB: db },
 		});
-		const res = await (mod as any).onRequestGet(ctx);
+		const res = await GET(event as any);
 		expect(res.status).toBe(500);
 	});
 });

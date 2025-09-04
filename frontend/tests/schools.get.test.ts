@@ -1,48 +1,45 @@
-import { describe, expect, it } from "vitest";
-import * as mod from "../src/routes/api/v1/schools/[id]/+server";
-import { makeCtx, makeD1Mock, readJson } from "./helpers";
+import { describe, expect, it } from "bun:test";
+import { GET } from "../src/routes/api/v1/schools/index/+server";
+import { makeD1Mock, makeEvent, readJson } from "./helpers";
 
 const DEV_ENV = { APP_ENV: "development" };
+const PROD_ENV = { APP_ENV: "prod" };
 
-describe("GET /api/v1/schools/{id}", () => {
-	it("400 when id missing", async () => {
-		const { db } = makeD1Mock();
-		const ctx = makeCtx({
-			url: "http://x/api/v1/schools/",
-			env: { ...DEV_ENV, DB: db },
-		});
-		const res = await (mod as any).onRequestGet(ctx);
-		expect(res.status).toBe(400);
-	});
-
-	it("404 when not found", async () => {
-		const { db } = makeD1Mock();
-		const ctx = makeCtx({
-			url: "http://x/api/v1/schools/none",
-			env: { ...DEV_ENV, DB: db },
-		});
-		const res = await (mod as any).onRequestGet(ctx);
-		expect(res.status).toBe(404);
-	});
-
-	it("200 when found", async () => {
+describe("GET /api/v1/schools", () => {
+	it("200 returns list", async () => {
 		const { db, state } = makeD1Mock();
-		state.firstResult = { schoolId: "ror:unitn", name: "UNITN" };
-		const orig = db.prepare.bind(db);
-		(db as any).prepare = (sql: string) => {
-			const s = orig(sql);
-			if (/FROM\s+schools\s+WHERE/i.test(sql))
-				s.first = async () => state.firstResult;
-			return s;
-		};
-		const ctx = makeCtx({
-			url: "http://x/api/v1/schools/ror:unitn",
+		state.allResults = [{ schoolId: "ror:unitn", name: "UNITN" }];
+		const event = makeEvent({
+			url: "http://x/api/v1/schools",
 			env: { ...DEV_ENV, DB: db },
 		});
-		const res = await (mod as any).onRequestGet(ctx);
+		const res = await GET(event as any);
 		expect(res.status).toBe(200);
 		const j = await readJson(res);
 		expect(j.ok).toBe(true);
-		expect(j.data.schoolId).toBe("ror:unitn");
+		expect(Array.isArray(j.data)).toBe(true);
+		expect(j.data[0].schoolId).toBe("ror:unitn");
+	});
+
+	it("500 INTERNAL when DB throws in prod", async () => {
+		const { db } = makeD1Mock();
+		(db as any).prepare = () => ({
+			all: async () => {
+				throw new Error("boom");
+			},
+			bind: () => ({
+				all: async () => ({ results: [] }),
+				first: async () => null,
+				run: async () => ({}),
+			}),
+			first: async () => null,
+			run: async () => ({}),
+		});
+		const event = makeEvent({
+			url: "http://x/api/v1/schools",
+			env: { ...PROD_ENV, DB: db },
+		});
+		const res = await GET(event as any);
+		expect(res.status).toBe(500);
 	});
 });

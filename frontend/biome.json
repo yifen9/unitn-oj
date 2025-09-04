@@ -6,13 +6,7 @@
 		"useIgnoreFile": true
 	},
 	"files": {
-		"includes": [
-			"d1/**/*",
-			"functions/**/*",
-			"src/**/*",
-			"static/**/*",
-			"tests/**/*"
-		]
+		"includes": ["d1/**/*", "src/**/*", "static/**/*", "tests/**/*"]
 	},
 	"assist": {
 		"enabled": true,

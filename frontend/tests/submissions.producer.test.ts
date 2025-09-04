@@ -1,7 +1,7 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { signSession } from "../src/lib/api/auth";
-import * as mod from "../src/routes/api/v1/problems/[id]/submissions/+server";
-import { makeCtx, makeD1Mock } from "./helpers";
+import { POST } from "../src/routes/api/v1/problems/[id]/submissions/+server";
+import { makeD1Mock, makeEvent } from "./helpers";
 
 describe("POST /api/v1/problems/{id}/submissions", () => {
 	it("201 inserts and sends queue", async () => {
@@ -9,14 +9,15 @@ describe("POST /api/v1/problems/{id}/submissions", () => {
 		const email = "alice@studenti.unitn.it";
 		const sid = await signSession("dev-secret", email);
 
-		const send = vi.fn(async () => {});
-		const ctx = makeCtx({
+		const calls: any[] = [];
+		const send = async (msg: any) => {
+			calls.push(msg);
+		};
+
+		const event = makeEvent({
 			url: "http://x/api/v1/problems/hello/submissions",
 			method: "POST",
-			headers: {
-				"content-type": "application/json",
-				cookie: `sid=${sid}`,
-			},
+			headers: { "content-type": "application/json", cookie: `sid=${sid}` },
 			body: JSON.stringify({ code: "print(1)" }),
 			env: {
 				APP_ENV: "dev",
@@ -25,13 +26,13 @@ describe("POST /api/v1/problems/{id}/submissions", () => {
 				DB: db,
 				QUEUE_SUBMISSIONS: { send },
 			},
-			params: { id: "hello" } as any,
+			params: { id: "hello" },
 		});
 
-		const res = await (mod as any).onRequestPost(ctx);
+		const res = await POST(event as any);
 		expect(res.status).toBe(201);
 		const j = await res.json();
 		expect(j.ok).toBe(true);
-		expect(send).toHaveBeenCalledTimes(1);
+		expect(calls.length).toBe(1);
 	});
 });

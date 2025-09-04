@@ -1,41 +1,42 @@
 {
-	"name": "unitn-oj-frontend",
-	"private": true,
-	"version": "0.0.1",
-	"type": "module",
-	"scripts": {
-		"db:apply:local": "wrangler d1 migrations apply DB --local",
-		"db:seed:local": "wrangler d1 execute DB --local --file d1/seed/dev_seed.sql",
-		"db:init:local": "bun run db:apply:local && bun run db:seed:local",
-		"build": "vite build",
-		"dev:pages": "wrangler pages dev .svelte-kit/cloudflare --local --ip 0.0.0.0 --port 8080",
-		"dev": "bun run build && bun run db:init:local && bun run dev:pages",
-		"lint": "biome check",
-		"fix": "biome check --fix",
-		"format": "biome check --write",
-		"test": "bun test",
-		"ci:check": "bun run lint && bun run test",
-		"check": "bun run format && bun run ci:check",
-		"update": "bun update"
-	},
-	"devDependencies": {
-		"@biomejs/biome": "^2.2.2",
-		"@cloudflare/workers-types": "^4.20250904.0",
-		"@sveltejs/adapter-cloudflare": "^7.2.3",
-		"@sveltejs/kit": "^2.37.0",
-		"@sveltejs/vite-plugin-svelte": "^6.1.4",
-		"@types/node": "^24.3.0",
-		"sass-embedded": "^1.92.0",
-		"svelte": "^5.38.6",
-		"svelte-check": "^4.3.1",
-		"typescript": "^5.9.2",
-		"vite": "^7.1.4",
-		"wrangler": "^4.33.2"
-	},
-	"bun": {
-		"onlyBuiltDependencies": [
-			"esbuild"
-		]
-	},
-	"packageManager": "bun@1.2.21"
+  "name": "unitn-oj-frontend",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "db:apply:local": "wrangler d1 migrations apply DB --local",
+    "db:seed:local": "wrangler d1 execute DB --local --file d1/seed/dev_seed.sql",
+    "db:init:local": "bun run db:apply:local && bun run db:seed:local",
+    "build": "vite build",
+    "dev:pages": "wrangler pages dev .svelte-kit/cloudflare --local --ip 0.0.0.0 --port 8080",
+    "dev": "bun run build && bun run db:init:local && bun run dev:pages",
+    "lint": "biome check",
+    "fix": "biome check --fix",
+    "format": "biome check --write",
+    "test": "bun test",
+    "ci:check": "bun run lint && bun run test",
+    "check": "bun run format && bun run ci:check",
+    "update": "bun update"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.2.2",
+    "@cloudflare/workers-types": "^4.20250904.0",
+    "@sveltejs/adapter-cloudflare": "^7.2.3",
+    "@sveltejs/kit": "^2.37.0",
+    "@sveltejs/vite-plugin-svelte": "^6.1.4",
+    "@types/node": "^24.3.0",
+    "sass-embedded": "^1.92.0",
+    "svelte": "^5.38.6",
+    "svelte-check": "^4.3.1",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.4",
+    "wrangler": "^4.33.2",
+    "@types/bun": "latest"
+  },
+  "bun": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  },
+  "packageManager": "bun@1.2.21"
 }

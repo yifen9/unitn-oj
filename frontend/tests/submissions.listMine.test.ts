@@ -1,7 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { signSession } from "../src/lib/api/auth";
-import * as mod from "../src/routes/api/v1/users/me/submissions/+server";
-import { makeCtx, makeD1Mock, readJson } from "./helpers";
+import { GET } from "../src/routes/api/v1/users/me/submissions/+server";
+import { makeD1Mock, makeEvent, readJson } from "./helpers";
 
 const DEV_ENV = {
 	APP_ENV: "development",
@@ -17,11 +17,11 @@ const PROD_ENV = {
 describe("GET /api/v1/users/me/submissions", () => {
 	it("401 when no sid", async () => {
 		const { db } = makeD1Mock();
-		const ctx = makeCtx({
+		const event = makeEvent({
 			url: "http://x/api/v1/users/me/submissions",
 			env: { ...DEV_ENV, DB: db },
 		});
-		const res = await (mod as any).onRequestGet(ctx);
+		const res = await GET(event as any);
 		expect(res.status).toBe(401);
 	});
 
@@ -47,12 +47,12 @@ describe("GET /api/v1/users/me/submissions", () => {
 			DEV_ENV.AUTH_SESSION_SECRET,
 			"alice@studenti.unitn.it",
 		);
-		const ctx = makeCtx({
+		const event = makeEvent({
 			url: "http://x/api/v1/users/me/submissions",
 			headers: { cookie: `sid=${sid}` },
 			env: { ...DEV_ENV, DB: db },
 		});
-		const res = await (mod as any).onRequestGet(ctx);
+		const res = await GET(event as any);
 		expect(res.status).toBe(200);
 		const j = await readJson(res);
 		expect(j.ok).toBe(true);
@@ -72,12 +72,12 @@ describe("GET /api/v1/users/me/submissions", () => {
 				},
 			}),
 		});
-		const ctx = makeCtx({
+		const event = makeEvent({
 			url: "http://x/api/v1/users/me/submissions",
 			headers: { cookie: `sid=${sid}` },
 			env: { ...PROD_ENV, DB: db },
 		});
-		const res = await (mod as any).onRequestGet(ctx);
+		const res = await GET(event as any);
 		expect(res.status).toBe(500);
 	});
 });

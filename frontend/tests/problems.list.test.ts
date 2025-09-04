@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
-import * as mod from "../src/routes/api/v1/courses/[courseId]/problems/index/+server";
-import { makeCtx, makeD1Mock, readJson } from "./helpers";
+import { describe, expect, it } from "bun:test";
+import { GET } from "../src/routes/api/v1/courses/[courseId]/problems/index/+server";
+import { makeD1Mock, makeEvent, readJson } from "./helpers";
 
 const DEV_ENV = { APP_ENV: "development" };
 const PROD_ENV = { APP_ENV: "prod" };
@@ -8,22 +8,24 @@ const PROD_ENV = { APP_ENV: "prod" };
 describe("GET /api/v1/courses/{courseId}/problems", () => {
 	it("400 when courseId missing", async () => {
 		const { db } = makeD1Mock();
-		const ctx = makeCtx({
+		const event = makeEvent({
 			url: "http://x/api/v1/courses//problems",
 			env: { ...DEV_ENV, DB: db },
+			params: {}, // 缺少 courseId
 		});
-		const res = await (mod as any).onRequestGet(ctx);
+		const res = await GET(event as any);
 		expect(res.status).toBe(400);
 	});
 
 	it("200 returns empty list when no mapping", async () => {
 		const { db, state } = makeD1Mock();
 		state.allResults = [];
-		const ctx = makeCtx({
+		const event = makeEvent({
 			url: "http://x/api/v1/courses/UNITN_CP1/problems",
 			env: { ...DEV_ENV, DB: db },
+			params: { courseId: "UNITN_CP1" },
 		});
-		const res = await (mod as any).onRequestGet(ctx);
+		const res = await GET(event as any);
 		expect(res.status).toBe(200);
 		const j = await readJson(res);
 		expect(j.ok).toBe(true);
@@ -37,11 +39,12 @@ describe("GET /api/v1/courses/{courseId}/problems", () => {
 			{ problemId: "p_b", title: "B" },
 			{ problemId: "p_c", title: "C" },
 		];
-		const ctx = makeCtx({
+		const event = makeEvent({
 			url: "http://x/api/v1/courses/UNITN_CP1/problems",
 			env: { ...DEV_ENV, DB: db },
+			params: { courseId: "UNITN_CP1" },
 		});
-		const res = await (mod as any).onRequestGet(ctx);
+		const res = await GET(event as any);
 		expect(res.status).toBe(200);
 		const j = await readJson(res);
 		expect(j.ok).toBe(true);
@@ -57,11 +60,12 @@ describe("GET /api/v1/courses/{courseId}/problems", () => {
 				},
 			}),
 		});
-		const ctx = makeCtx({
+		const event = makeEvent({
 			url: "http://x/api/v1/courses/UNITN_CP1/problems",
 			env: { ...PROD_ENV, DB: db },
+			params: { courseId: "UNITN_CP1" },
 		});
-		const res = await (mod as any).onRequestGet(ctx);
+		const res = await GET(event as any);
 		expect(res.status).toBe(500);
 	});
 });

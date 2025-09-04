@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
-import * as mod from "../src/routes/api/v1/courses/index/+server";
-import { makeCtx, makeD1Mock, readJson } from "./helpers";
+import { describe, expect, it } from "bun:test";
+import { GET } from "../src/routes/api/v1/courses/index/+server";
+import { makeD1Mock, makeEvent, readJson } from "./helpers";
 
 const DEV_ENV = { APP_ENV: "development" };
 const PROD_ENV = { APP_ENV: "prod" };
@@ -11,11 +11,11 @@ describe("GET /api/v1/courses", () => {
 		state.allResults = [
 			{ courseId: "UNITN_CP1", schoolId: "ror:unitn", name: "CP1" },
 		];
-		const ctx = makeCtx({
+		const event = makeEvent({
 			url: "http://x/api/v1/courses",
 			env: { ...DEV_ENV, DB: db },
 		});
-		const res = await (mod as any).onRequestGet(ctx);
+		const res = await GET(event as any);
 		expect(res.status).toBe(200);
 		const j = await readJson(res);
 		expect(j.ok).toBe(true);
@@ -24,11 +24,11 @@ describe("GET /api/v1/courses", () => {
 
 	it("400 when schoolId present but empty", async () => {
 		const { db } = makeD1Mock();
-		const ctx = makeCtx({
+		const event = makeEvent({
 			url: "http://x/api/v1/courses?schoolId=",
 			env: { ...DEV_ENV, DB: db },
 		});
-		const res = await (mod as any).onRequestGet(ctx);
+		const res = await GET(event as any);
 		expect(res.status).toBe(400);
 	});
 
@@ -37,11 +37,11 @@ describe("GET /api/v1/courses", () => {
 		state.allResults = [
 			{ courseId: "UNITN_CP1", schoolId: "ror:unitn", name: "CP1" },
 		];
-		const ctx = makeCtx({
+		const event = makeEvent({
 			url: "http://x/api/v1/courses?schoolId=ror:unitn",
 			env: { ...DEV_ENV, DB: db },
 		});
-		const res = await (mod as any).onRequestGet(ctx);
+		const res = await GET(event as any);
 		expect(res.status).toBe(200);
 		const j = await readJson(res);
 		expect(j.ok).toBe(true);
@@ -61,11 +61,11 @@ describe("GET /api/v1/courses", () => {
 			first: async () => null,
 			run: async () => ({}),
 		});
-		const ctx = makeCtx({
+		const event = makeEvent({
 			url: "http://x/api/v1/courses",
 			env: { ...PROD_ENV, DB: db },
 		});
-		const res = await (mod as any).onRequestGet(ctx);
+		const res = await GET(event as any);
 		expect(res.status).toBe(500);
 	});
 });
