@@ -8,15 +8,13 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@main
+      - uses: actions/checkout@latest
+      - uses: oven-sh/setup-bun@latest
         with:
           bun-version: latest
-      - uses: actions/setup-node@main
+      - uses: actions/setup-node@latest
         with:
           node-version: latest
-          cache: 'bun'
-          cache-dependency-path: frontend/bun.lock
       - working-directory: frontend
         run: bun install --frozen-lockfile
       - working-directory: frontend
