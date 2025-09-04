@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import * as mod from "../functions/api/v1/auth/logout";
+import * as mod from "../src/routes/api/v1/auth/logout";
 import { makeCtx, readJson } from "./helpers";
 
 describe("POST /api/v1/auth/logout", () => {

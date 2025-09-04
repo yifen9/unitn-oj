@@ -1,5 +1,5 @@
-import { isProd } from "../../../_lib/env";
-import { httpError, httpJson } from "../../../_lib/http";
+import { isProd } from "../../../../lib/api/env";
+import { httpError, httpJson } from "../../../../lib/api/http";
 
 export const onRequestGet: PagesFunction = async ({ request, env }) => {
 	try {

@@ -1,5 +1,5 @@
-import { isProd } from "../../../../../_lib/env";
-import { httpError, httpJson } from "../../../../../_lib/http";
+import { isProd } from "../../../../../../lib/api/env";
+import { httpError, httpJson } from "../../../../../../lib/api/http";
 
 function readIds(req: Request, params: Record<string, string> | undefined) {
 	const cp = params?.courseId;

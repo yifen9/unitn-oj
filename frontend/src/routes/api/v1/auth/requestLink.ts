@@ -1,5 +1,9 @@
-import { getOptionalNumber, getRequired, isProd } from "../../../_lib/env";
-import { httpError, httpJson, readJson } from "../../../_lib/http";
+import {
+	getOptionalNumber,
+	getRequired,
+	isProd,
+} from "../../../../lib/api/env";
+import { httpError, httpJson, readJson } from "../../../../lib/api/http";
 
 export const onRequestPost: PagesFunction = async ({ request, env }) => {
 	const prod = isProd(env);

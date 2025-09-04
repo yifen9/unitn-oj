@@ -2,9 +2,13 @@ import {
 	readSidFromCookie,
 	userIdFromEmail,
 	verifySession,
-} from "../../../_lib/auth";
-import { getOptionalNumber, getRequired, isProd } from "../../../_lib/env";
-import { httpError, httpJson } from "../../../_lib/http";
+} from "../../../../lib/api/auth";
+import {
+	getOptionalNumber,
+	getRequired,
+	isProd,
+} from "../../../../lib/api/env";
+import { httpError, httpJson } from "../../../../lib/api/http";
 
 function readId(req: Request, params: Record<string, string> | undefined) {
 	const p = params?.id;
