@@ -1,7 +1,7 @@
 services:
-  frontend:
+  unitn-oj:
     image: node:20-bookworm
-    container_name: unitn-oj-frontend
+    container_name: unitn-oj
     working_dir: /workspace/frontend
     ports:
       - "4173:4173"

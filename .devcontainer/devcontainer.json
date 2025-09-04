@@ -1,6 +1,6 @@
 {
   "dockerComposeFile": "compose.yaml",
-  "service": "frontend",
+  "service": "unitn-oj",
   "workspaceFolder": "/workspace",
   "shutdownAction": "stopCompose",
   "customizations": {
