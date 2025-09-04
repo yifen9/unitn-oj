@@ -8,7 +8,7 @@
 		"db:seed:local": "wrangler d1 execute DB --local --file d1/seed/dev_seed.sql",
 		"db:init:local": "bun run db:apply:local && bun run db:seed:local",
 		"build": "vite build",
-		"dev:pages": "wrangler pages dev build --local --ip 0.0.0.0 --port 8080",
+		"dev:pages": "wrangler pages dev .svelte-kit/cloudflare --local --ip 0.0.0.0 --port 8080",
 		"dev": "bun run build && bun run db:init:local && bun run dev:pages",
 		"lint": "biome check",
 		"fix": "biome check --fix",

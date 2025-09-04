@@ -16,5 +16,5 @@ services:
         bun run build &&
         bunx wrangler d1 migrations apply DB --local &&
         bunx wrangler d1 execute DB --local --file d1/seed/dev_seed.sql &&
-        bunx wrangler pages dev build --local --ip 0.0.0.0 --port 8080
+        bunx wrangler pages dev .svelte-kit/cloudflare --local --ip 0.0.0.0 --port 8080
       "
