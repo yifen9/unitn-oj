@@ -1,12 +1,14 @@
-import { signSession, userIdFromEmail } from "../../../../../lib/api/auth";
-import {
-	getOptionalNumber,
-	getRequired,
-	isProd,
-} from "../../../../../lib/api/env";
-import { httpError, readJson } from "../../../../../lib/api/http";
+import type { RequestHandler } from "@sveltejs/kit";
+import { signSession, userIdFromEmail } from "$lib/api/auth";
+import { getOptionalNumber, getRequired, isProd } from "$lib/api/env";
+import { httpError, readJson } from "$lib/api/http";
 
-export const onRequest: PagesFunction = async ({ request, env }) => {
+const handleVerify: RequestHandler = async (event) => {
+	const { request, platform } = event;
+	const env = platform.env as unknown as { DB: D1Database } & Record<
+		string,
+		string
+	>;
 	const prod = isProd(env);
 
 	let token = new URL(request.url).searchParams.get("token") || "";
@@ -82,3 +84,6 @@ export const onRequest: PagesFunction = async ({ request, env }) => {
 		headers,
 	});
 };
+
+export const GET: RequestHandler = (event) => handleVerify(event);
+export const POST: RequestHandler = (event) => handleVerify(event);

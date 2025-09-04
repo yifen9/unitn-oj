@@ -11,7 +11,11 @@
 		"strict": true,
 		"moduleResolution": "bundler",
 
-		"types": ["vite/client"]
-	},
-	"exclude": ["functions/**/*"]
+		"types": ["vite/client"],
+
+		"baseUrl": ".",
+		"paths": {
+			"$lib/*": ["src/lib/*"]
+		}
+	}
 }

@@ -1,12 +1,17 @@
-import { isProd } from "../../../../../lib/api/env";
-import { httpError, httpJson } from "../../../../../lib/api/http";
+import type { RequestHandler } from "@sveltejs/kit";
+import { isProd } from "$lib/api/env";
+import { httpError, httpJson } from "$lib/api/http";
 
-export const onRequestGet: PagesFunction = async ({ request, env }) => {
-	const url = new URL(request.url);
+export const GET: RequestHandler = async (event) => {
+	const env = event.platform.env as any;
+	const url = new URL(event.request.url);
 	const hasFilter = url.searchParams.has("schoolId");
-	const schoolId = url.searchParams.get("schoolId") || "";
-	if (hasFilter && !schoolId.trim())
+	const schoolId = (url.searchParams.get("schoolId") || "").trim();
+
+	if (hasFilter && !schoolId) {
 		return httpError("INVALID_ARGUMENT", "schoolId must not be empty", 400);
+	}
+
 	try {
 		if (hasFilter) {
 			const r = await env.DB.prepare(

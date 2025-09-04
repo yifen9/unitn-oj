@@ -1,18 +1,18 @@
+import type { RequestHandler } from "@sveltejs/kit";
 import {
 	readSidFromCookie,
 	userIdFromEmail,
 	verifySession,
-} from "../../../../../../lib/api/auth";
-import {
-	getOptionalNumber,
-	getRequired,
-	isProd,
-} from "../../../../../../lib/api/env";
-import { httpError, httpJson } from "../../../../../../lib/api/http";
+} from "$lib/api/auth";
+import { getOptionalNumber, getRequired, isProd } from "$lib/api/env";
+import { httpError, httpJson } from "$lib/api/http";
 
-export const onRequestGet: PagesFunction = async ({ request, env }) => {
-	const sid = readSidFromCookie(request);
+export const GET: RequestHandler = async (event) => {
+	const env = event.platform.env as any;
+
+	const sid = readSidFromCookie(event.request);
 	if (!sid) return httpError("UNAUTHENTICATED", "sid cookie required", 401);
+
 	const sessionTtl = getOptionalNumber(
 		env,
 		"AUTH_SESSION_TTL_SECONDS",
@@ -42,6 +42,7 @@ export const onRequestGet: PagesFunction = async ({ request, env }) => {
 				status: string;
 				createdAt: number;
 			}>();
+
 		return httpJson({ ok: true, data: r.results });
 	} catch (e) {
 		if (isProd(env)) return httpError("INTERNAL", "database error", 500);

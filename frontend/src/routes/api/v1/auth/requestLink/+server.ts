@@ -1,11 +1,19 @@
-import {
-	getOptionalNumber,
-	getRequired,
-	isProd,
-} from "../../../../../lib/api/env";
-import { httpError, httpJson, readJson } from "../../../../../lib/api/http";
+import type { RequestHandler } from "@sveltejs/kit";
+import { getOptionalNumber, getRequired, isProd } from "$lib/api/env";
+import { httpError, httpJson, readJson } from "$lib/api/http";
 
-export const onRequestPost: PagesFunction = async ({ request, env }) => {
+function randomHex(len = 32) {
+	const bytes = new Uint8Array(len);
+	crypto.getRandomValues(bytes);
+	return [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+export const POST: RequestHandler = async (event) => {
+	const { request, platform } = event;
+	const env = platform.env as unknown as { DB: D1Database } & Record<
+		string,
+		string
+	>;
 	const prod = isProd(env);
 
 	let email = "";
@@ -55,9 +63,3 @@ export const onRequestPost: PagesFunction = async ({ request, env }) => {
 	if (prod) return httpJson({ ok: true });
 	return httpJson({ ok: true, data: { magicUrl: url.toString() } });
 };
-
-function randomHex(len = 32) {
-	const bytes = new Uint8Array(len);
-	crypto.getRandomValues(bytes);
-	return [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
-}

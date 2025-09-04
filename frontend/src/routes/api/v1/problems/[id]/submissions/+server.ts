@@ -1,26 +1,11 @@
+import type { RequestHandler } from "@sveltejs/kit";
 import {
 	readSidFromCookie,
 	userIdFromEmail,
 	verifySession,
-} from "../../../../../../lib/api/auth";
-import {
-	getOptionalNumber,
-	getRequired,
-	isProd,
-} from "../../../../../../lib/api/env";
-import { httpError, httpJson, readJson } from "../../../../../../lib/api/http";
-
-function readProblemId(
-	req: Request,
-	params: Record<string, string> | undefined,
-) {
-	const p = params?.id;
-	if (p) return p;
-	const m = new URL(req.url).pathname.match(
-		/\/api\/v1\/problems\/([^/]+)\/submissions\/?$/,
-	);
-	return m ? decodeURIComponent(m[1]) : "";
-}
+} from "$lib/api/auth";
+import { getOptionalNumber, getRequired, isProd } from "$lib/api/env";
+import { httpError, httpJson, readJson } from "$lib/api/http";
 
 function randomId() {
 	const b = new Uint8Array(8);
@@ -28,17 +13,15 @@ function randomId() {
 	return `s_${[...b].map((x) => x.toString(16).padStart(2, "0")).join("")}`;
 }
 
-export const onRequestPost: PagesFunction = async ({
-	request,
-	env,
-	params,
-}) => {
-	const problemId = readProblemId(request, params as any);
+export const POST: RequestHandler = async (event) => {
+	const env = event.platform.env as any;
+	const problemId = event.params.id || "";
 	if (!problemId)
 		return httpError("INVALID_ARGUMENT", "problemId required", 400);
 
-	const sid = readSidFromCookie(request);
+	const sid = readSidFromCookie(event.request);
 	if (!sid) return httpError("UNAUTHENTICATED", "sid cookie required", 401);
+
 	const ttl = getOptionalNumber(env, "AUTH_SESSION_TTL_SECONDS", 7 * 24 * 3600);
 	const secret = getRequired(env, "AUTH_SESSION_SECRET");
 
@@ -52,7 +35,7 @@ export const onRequestPost: PagesFunction = async ({
 
 	let body: { code?: string };
 	try {
-		body = await readJson(request);
+		body = await readJson(event.request);
 	} catch (e) {
 		return e as Response;
 	}
@@ -81,7 +64,7 @@ export const onRequestPost: PagesFunction = async ({
 			userId,
 			createdAt: now,
 		});
-	} catch (_e) {
+	} catch {
 		if (isProd(env)) return httpError("INTERNAL", "queue error", 500);
 		return httpError("INTERNAL", "queue error", 500);
 	}

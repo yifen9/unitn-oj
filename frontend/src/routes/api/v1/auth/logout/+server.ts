@@ -1,8 +1,11 @@
-import { isProd } from "../../../../../lib/api/env";
+import type { RequestHandler } from "@sveltejs/kit";
+import { isProd } from "$lib/api/env";
 
-export const onRequestPost: PagesFunction = async ({ request, env }) => {
-	const prod = isProd(env);
+export const POST: RequestHandler = async (event) => {
+	const prod = isProd(event.platform.env);
 	const headers = new Headers();
+
+	// 清除 cookie
 	headers.append(
 		"set-cookie",
 		[
@@ -17,7 +20,7 @@ export const onRequestPost: PagesFunction = async ({ request, env }) => {
 			.join("; "),
 	);
 
-	const accept = request.headers.get("accept") || "";
+	const accept = event.request.headers.get("accept") || "";
 	if (/\btext\/html\b/i.test(accept)) {
 		headers.set("location", "/");
 		return new Response(null, { status: 303, headers });
