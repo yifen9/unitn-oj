@@ -1,20 +1,20 @@
 services:
   frontend:
-    image: node:20-bookworm
+    image: oven/bun:latest
     container_name: unitn-oj-frontend
     working_dir: /workspace/frontend
+    ports:
+      - "8080:8080"
+    environment:
+      NODE_ENV: development
     volumes:
       - "..:/workspace"
     command: >
       bash -lc "
         set -e;
-        corepack enable &&
-        corepack prepare pnpm@8.15.5 --activate &&
-        pnpm install &&
-        pnpm build &&
-        pnpm wrangler d1 migrations apply DB --local &&
-        pnpm wrangler d1 execute DB --local --file d1/seed/dev_seed.sql &&
-        pnpm wrangler pages dev build --local --port 8080 --ip 0.0.0.0
+        bun install --frozen-lockfile &&
+        bun run build &&
+        bunx wrangler d1 migrations apply DB --local &&
+        bunx wrangler d1 execute DB --local --file d1/seed/dev_seed.sql &&
+        bunx wrangler pages dev build --local --ip 0.0.0.0 --port 8080
       "
-    ports:
-      - "8080:8080"
