@@ -6,9 +6,11 @@
   "customizations": {
     "vscode": {
       "extensions": [
+        "antfu.vite",
         "svelte.svelte-vscode",
-        "dbaeumer.vscode-eslint",
-        "mrmlnc.vscode-scss"
+        "oven.bun-vscode",
+        "bradlc.vscode-tailwindcss",
+        "biomejs.biome"
       ]
     }
   }
