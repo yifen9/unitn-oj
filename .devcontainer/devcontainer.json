@@ -12,7 +12,8 @@
         "vitest.explorer",
         "svelte.svelte-vscode",
         "bradlc.vscode-tailwindcss",
-        "biomejs.biome"
+        "biomejs.biome",
+        "hashicorp.terraform"
       ]
     }
   }
