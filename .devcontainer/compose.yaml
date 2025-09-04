@@ -12,9 +12,9 @@ services:
         corepack prepare pnpm@8.15.5 --activate &&
         pnpm install &&
         pnpm build &&
-        pnpm dlx wrangler d1 migrations apply DB --local &&
-        pnpm dlx wrangler d1 execute DB --local --file d1/seed/dev_seed.sql &&
-        pnpm dlx wrangler pages dev build --local --port 8080 --ip 0.0.0.0
+        pnpm wrangler d1 migrations apply DB --local &&
+        pnpm wrangler d1 execute DB --local --file d1/seed/dev_seed.sql &&
+        pnpm wrangler pages dev build --local --port 8080 --ip 0.0.0.0
       "
     ports:
       - "8080:8080"

@@ -12,15 +12,15 @@ export let data: {
 	}[];
 };
 
-let _items = data.submissions;
+let items = data.submissions;
 let ticking: number | null = null;
 const intervalMs = 7000;
-let _loading = false;
-let _errorMsg = "";
+let loading = false;
+let errorMsg = "";
 
 async function reload() {
-	_loading = true;
-	_errorMsg = "";
+	loading = true;
+	errorMsg = "";
 	try {
 		const res = await fetch("/api/v1/users/me/submissions", {
 			credentials: "same-origin",
@@ -32,11 +32,11 @@ async function reload() {
 		const j = await res.json();
 		if (!res.ok || !j?.ok)
 			throw new Error(j?.error?.message || "Reload failed");
-		_items = j.data;
+		items = j.data;
 	} catch (e: any) {
-		_errorMsg = e?.message || "Reload failed";
+		errorMsg = e?.message || "Reload failed";
 	} finally {
-		_loading = false;
+		loading = false;
 	}
 }
 
@@ -48,7 +48,7 @@ onDestroy(() => {
 	if (ticking) clearInterval(ticking as unknown as number);
 });
 
-function _fmt(ts: number) {
+function fmt(ts: number) {
 	try {
 		return new Date(ts * 1000).toISOString();
 	} catch {

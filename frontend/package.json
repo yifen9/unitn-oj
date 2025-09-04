@@ -4,20 +4,21 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"dev": "pnpm build && pnpm db:init:local && pnpm dev:pages",
-		"dev:pages": "wrangler pages dev .svelte-kit/cloudflare --local --port 8080 --ip 0.0.0.0",
-		"dev:watch": "bash -lc \"trap 'kill 0' INT; vite build --watch & wrangler pages dev .svelte-kit/cloudflare --local --port 8080 --ip 0.0.0.0\"",
-		"build": "vite build",
-		"prepare": "svelte-kit sync || echo ''",
-		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-		"lint": "biome check .",
-		"format": "biome check --write .",
-		"fix:unsafe": "biome check --write --unsafe .",
-		"test": "vitest --run",
 		"db:apply:local": "wrangler d1 migrations apply DB --local",
 		"db:seed:local": "wrangler d1 execute DB --local --file d1/seed/dev_seed.sql",
 		"db:init:local": "pnpm db:apply:local && pnpm db:seed:local",
+
+		"build": "vite build",
+
+		"dev": "pnpm build && pnpm db:init:local && pnpm dev:pages",
+		"dev:pages": "wrangler pages dev .svelte-kit/cloudflare --local --port 8080 --ip 0.0.0.0",
+
+		"format": "biome check --write .",
+		"lint": "biome check .",
+		"test": "vitest --run",
 		"ci:check": "pnpm lint && pnpm test",
+		"check": "pnpm format && pnpm ci:check",
+
 		"update:deps": "pnpm up --latest && pnpm install"
 	},
 	"devDependencies": {

@@ -1,5 +1,5 @@
-name = "unitn-oj"
-compatibility_date = "2024-09-02"
+name = "unitn-oj-frontend"
+compatibility_date = "2024-09-03"
 
 [[d1_databases]]
 binding = "DB"
