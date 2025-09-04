@@ -18,4 +18,4 @@ jobs:
       - working-directory: frontend
         run: bun install --frozen-lockfile
       - working-directory: frontend
-        run: bun ci:check
+        run: bun run check:ci
