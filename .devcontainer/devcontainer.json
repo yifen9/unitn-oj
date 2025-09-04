@@ -7,9 +7,10 @@
     "vscode": {
       "extensions": [
         "ms-vscode.vscode-typescript-next",
+        "jacano.vscode-pnpm",
         "antfu.vite",
+        "vitest.explorer",
         "svelte.svelte-vscode",
-        "oven.bun-vscode",
         "bradlc.vscode-tailwindcss",
         "biomejs.biome"
       ]

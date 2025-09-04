@@ -6,19 +6,24 @@
   "scripts": {
     "db:apply:local": "wrangler d1 migrations apply DB --local",
     "db:seed:local": "wrangler d1 execute DB --local --file d1/seed/dev_seed.sql",
-    "db:init:local": "bun run db:apply:local && bun run db:seed:local",
-    "init": "bun run db:init:local",
+    "db:init:local": "pnpm db:apply:local && pnpm db:seed:local",
+    "db:init": "pnpm db:init:local || yes",
+    
     "prepare": "svelte-kit sync",
     "build": "vite build",
     "preview": "vite preview",
-    "dev": "bun run prepare && wrangler pages dev",
+    "dev": "pnpm prepare && wrangler pages dev",
+    "dev:init": "pnpm db:init && pnpm dev",
+
     "lint": "biome check",
     "fix": "biome check --fix",
     "format": "biome check --write",
-    "test": "bun test",
-    "check:ci": "bun run lint && bun run test",
-    "check": "bun run format && bun run check:ci",
-    "update": "bun update"
+
+    "test": "vitest --run",
+    "check:ci": "pnpm lint && pnpm test",
+    "check": "pnpm format && pnpm check:ci",
+
+    "update": "pnpm up --latest && pnpm install"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.2",
@@ -26,19 +31,14 @@
     "@sveltejs/adapter-cloudflare": "^7.2.3",
     "@sveltejs/kit": "^2.37.0",
     "@sveltejs/vite-plugin-svelte": "^6.1.4",
-    "@types/node": "^24.3.0",
+    "@types/node": "^24.3.1",
     "sass-embedded": "^1.92.0",
     "svelte": "^5.38.6",
     "svelte-check": "^4.3.1",
     "typescript": "^5.9.2",
     "vite": "^7.1.4",
-    "wrangler": "^4.33.2",
-    "@types/bun": "^1.2.21"
+    "vitest": "^3.2.4",
+    "wrangler": "^4.33.2"
   },
-  "bun": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
-  },
-  "packageManager": "bun@1.2.21"
+  "packageManager": "pnpm@8.15.5"
 }

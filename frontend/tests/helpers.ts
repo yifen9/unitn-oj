@@ -1,4 +1,4 @@
-import { expect } from "bun:test";
+import { expect } from "vitest";
 
 export async function readJson(res: Response) {
 	const text = await res.text();

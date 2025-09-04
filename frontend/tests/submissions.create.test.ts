@@ -1,4 +1,4 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it } from "vitest";
 import { signSession } from "../src/lib/api/auth";
 import { POST } from "../src/routes/api/v1/problems/[id]/submissions/index/+server";
 import { makeD1Mock, makeEvent, readJson } from "./helpers";
