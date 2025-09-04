@@ -7,15 +7,17 @@
     "db:apply:local": "wrangler d1 migrations apply DB --local",
     "db:seed:local": "wrangler d1 execute DB --local --file d1/seed/dev_seed.sql",
     "db:init:local": "bun run db:apply:local && bun run db:seed:local",
+    "init": "bun run db:init:local",
+    "prepare": "svelte-kit sync",
     "build": "vite build",
-    "dev:pages": "wrangler pages dev .svelte-kit/cloudflare --local --ip 0.0.0.0 --port 8080",
-    "dev": "bun run build && bun run db:init:local && bun run dev:pages",
+    "preview": "vite preview",
+    "dev": "bun run prepare && wrangler pages dev",
     "lint": "biome check",
     "fix": "biome check --fix",
     "format": "biome check --write",
     "test": "bun test",
-    "ci:check": "bun run lint && bun run test",
-    "check": "bun run format && bun run ci:check",
+    "check:ci": "bun run lint && bun run test",
+    "check": "bun run format && bun run check:ci",
     "update": "bun update"
   },
   "devDependencies": {
@@ -31,7 +33,7 @@
     "typescript": "^5.9.2",
     "vite": "^7.1.4",
     "wrangler": "^4.33.2",
-    "@types/bun": "latest"
+    "@types/bun": "^1.2.21"
   },
   "bun": {
     "onlyBuiltDependencies": [

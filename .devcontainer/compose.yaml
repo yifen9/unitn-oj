@@ -5,6 +5,7 @@ services:
     working_dir: /workspace/frontend
     ports:
       - "8080:8080"
+      - "4173:4173"
     volumes:
       - "..:/workspace"
     command: >
