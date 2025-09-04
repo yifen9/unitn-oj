@@ -7,23 +7,18 @@
     "db:apply:local": "wrangler d1 migrations apply DB --local",
     "db:seed:local": "wrangler d1 execute DB --local --file d1/seed/dev_seed.sql",
     "db:init:local": "pnpm db:apply:local && pnpm db:seed:local",
-    "db:init": "pnpm db:init:local || yes",
-    
+    "db:init": "pnpm db:init:local",
     "prepare": "svelte-kit sync",
     "build": "vite build",
     "preview": "vite preview",
     "dev": "pnpm prepare && pnpm build && wrangler pages dev",
-
     "e2e": "pnpm db:init && pnpm dev",
-
     "lint": "biome check",
     "fix": "biome check --fix",
     "format": "biome check --write",
-
     "test": "vitest --run",
     "check:ci": "pnpm lint && pnpm test",
     "check": "pnpm format && pnpm check:ci",
-
     "update": "pnpm up --latest && pnpm install"
   },
   "devDependencies": {
@@ -39,7 +34,7 @@
     "typescript": "^5.9.2",
     "vite": "^7.1.4",
     "vitest": "^3.2.4",
-    "wrangler": "^4.33.2"
+    "wrangler": "^4.34.0"
   },
   "packageManager": "pnpm@8.15.5"
 }

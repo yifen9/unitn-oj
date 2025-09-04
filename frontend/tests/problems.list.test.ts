@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { GET } from "../src/routes/api/v1/courses/[courseId]/problems/index/+server";
+import { GET } from "../src/routes/api/v1/courses/[courseId]/problems/+server";
 import { makeD1Mock, makeEvent, readJson } from "./helpers";
 
 const DEV_ENV = { APP_ENV: "development" };
@@ -11,7 +11,7 @@ describe("GET /api/v1/courses/{courseId}/problems", () => {
 		const event = makeEvent({
 			url: "http://x/api/v1/courses//problems",
 			env: { ...DEV_ENV, DB: db },
-			params: {}, // 缺少 courseId
+			params: {},
 		});
 		const res = await GET(event as any);
 		expect(res.status).toBe(400);
