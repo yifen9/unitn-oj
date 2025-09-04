@@ -1,5 +1,8 @@
 <script lang="ts">
-  export let data: { courseId: string; problems: { problemId: string; title: string }[] }
+export let data: {
+	courseId: string;
+	problems: { problemId: string; title: string }[];
+};
 </script>
 
 <h1>Problems</h1>

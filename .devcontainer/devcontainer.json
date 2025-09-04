@@ -6,6 +6,7 @@
   "customizations": {
     "vscode": {
       "extensions": [
+        "ms-vscode.vscode-typescript-next",
         "antfu.vite",
         "svelte.svelte-vscode",
         "oven.bun-vscode",

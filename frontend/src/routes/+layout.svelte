@@ -1,12 +1,16 @@
 <script lang="ts">
-  import '../lib/styles/base.scss'
-  export let data: { user: { userId: string; email: string } | null }
+import "../lib/styles/base.scss";
+export let data: { user: { userId: string; email: string } | null };
 
-  import { goto } from '$app/navigation';
-  async function signOut() {
-    await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'same-origin' });
-    await goto('/');
-  }
+import { goto } from "$app/navigation";
+
+async function _signOut() {
+	await fetch("/api/v1/auth/logout", {
+		method: "POST",
+		credentials: "same-origin",
+	});
+	await goto("/");
+}
 </script>
 
 <div class="app">

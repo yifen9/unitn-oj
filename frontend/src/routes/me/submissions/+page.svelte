@@ -1,37 +1,60 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte'
-  import { goto } from '$app/navigation'
-  export let data: { requiresAuth: boolean; submissions: { submissionId: string; userId: string; problemId: string; status: string; createdAt: number }[] }
+import { onDestroy, onMount } from "svelte";
+import { goto } from "$app/navigation";
+export let data: {
+	requiresAuth: boolean;
+	submissions: {
+		submissionId: string;
+		userId: string;
+		problemId: string;
+		status: string;
+		createdAt: number;
+	}[];
+};
 
-  let items = data.submissions
-  let ticking: number | null = null
-  let intervalMs = 7000
-  let loading = false
-  let errorMsg = ''
+let _items = data.submissions;
+let ticking: number | null = null;
+const intervalMs = 7000;
+let _loading = false;
+let _errorMsg = "";
 
-  async function reload() {
-    loading = true; errorMsg = ''
-    try {
-      const res = await fetch('/api/v1/users/me/submissions', { credentials: 'same-origin' })
-      if (res.status === 401) { await goto('/login'); return }
-      const j = await res.json()
-      if (!res.ok || !j?.ok) throw new Error(j?.error?.message || 'Reload failed')
-      items = j.data
-    } catch (e: any) {
-      errorMsg = e?.message || 'Reload failed'
-    } finally {
-      loading = false
-    }
-  }
+async function reload() {
+	_loading = true;
+	_errorMsg = "";
+	try {
+		const res = await fetch("/api/v1/users/me/submissions", {
+			credentials: "same-origin",
+		});
+		if (res.status === 401) {
+			await goto("/login");
+			return;
+		}
+		const j = await res.json();
+		if (!res.ok || !j?.ok)
+			throw new Error(j?.error?.message || "Reload failed");
+		_items = j.data;
+	} catch (e: any) {
+		_errorMsg = e?.message || "Reload failed";
+	} finally {
+		_loading = false;
+	}
+}
 
-  onMount(() => {
-    if (!data.requiresAuth) ticking = setInterval(reload, intervalMs) as unknown as number
-  })
-  onDestroy(() => { if (ticking) clearInterval(ticking as unknown as number) })
+onMount(() => {
+	if (!data.requiresAuth)
+		ticking = setInterval(reload, intervalMs) as unknown as number;
+});
+onDestroy(() => {
+	if (ticking) clearInterval(ticking as unknown as number);
+});
 
-  function fmt(ts: number) {
-    try { return new Date(ts * 1000).toISOString() } catch { return String(ts) }
-  }
+function _fmt(ts: number) {
+	try {
+		return new Date(ts * 1000).toISOString();
+	} catch {
+		return String(ts);
+	}
+}
 </script>
 
 <h1>My submissions</h1>

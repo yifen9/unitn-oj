@@ -1,31 +1,32 @@
 <script>
-  import { page } from '$app/stores';
-  import { onMount } from 'svelte';
+import { onMount } from "svelte";
+import { page } from "$app/stores";
 
-  let course = null;
-  let problems = [];
-  let message = '';
+let course = null;
+let problems = [];
+let message = "";
 
-  $: courseId = $page.params.id;
+$: courseId = $page.params.id;
 
-  async function loadCourse() {
-    const res = await fetch(`/api/v1/courses/${courseId}`);
-    const j = await res.json();
-    if (j.ok) course = j.data;
-    else message = j.error?.message || 'Failed to load course';
-  }
+async function loadCourse() {
+	s;
+	const res = await fetch(`/api/v1/courses/${courseId}`);
+	const j = await res.json();
+	if (j.ok) course = j.data;
+	else message = j.error?.message || "Failed to load course";
+}
 
-  async function loadProblems() {
-    const res = await fetch(`/api/v1/courses/${courseId}/problems`);
-    const j = await res.json();
-    if (j.ok) problems = j.data;
-    else message = j.error?.message || 'Failed to load problems';
-  }
+async function loadProblems() {
+	const res = await fetch(`/api/v1/courses/${courseId}/problems`);
+	const j = await res.json();
+	if (j.ok) problems = j.data;
+	else message = j.error?.message || "Failed to load problems";
+}
 
-  onMount(async () => {
-    await loadCourse();
-    await loadProblems();
-  });
+onMount(async () => {
+	await loadCourse();
+	await loadProblems();
+});
 </script>
 
 {#if course}

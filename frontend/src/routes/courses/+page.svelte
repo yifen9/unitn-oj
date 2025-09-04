@@ -1,17 +1,17 @@
 <script>
-  import { onMount } from 'svelte';
+import { onMount } from "svelte";
 
-  let courses = [];
-  let message = '';
+let _courses = [];
+let _message = "";
 
-  async function loadCourses() {
-    const res = await fetch('/api/v1/courses');
-    const j = await res.json();
-    if (j.ok) courses = j.data;
-    else message = j.error?.message || 'Failed to load courses';
-  }
+async function loadCourses() {
+	const res = await fetch("/api/v1/courses");
+	const j = await res.json();
+	if (j.ok) _courses = j.data;
+	else _message = j.error?.message || "Failed to load courses";
+}
 
-  onMount(loadCourses);
+onMount(loadCourses);
 </script>
 
 <h1>Courses</h1>

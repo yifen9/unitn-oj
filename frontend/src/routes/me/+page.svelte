@@ -1,5 +1,5 @@
 <script lang="ts">
-  export let data: { user: { email: string } | null }
+export let data: { user: { email: string } | null };
 </script>
 
 <h1>My profile</h1>
