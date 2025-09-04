@@ -8,11 +8,11 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@latest
-      - uses: oven-sh/setup-bun@latest
+      - uses: actions/checkout@main
+      - uses: oven-sh/setup-bun@main
         with:
           bun-version: latest
-      - uses: actions/setup-node@latest
+      - uses: actions/setup-node@main
         with:
           node-version: latest
       - working-directory: frontend
