@@ -1,5 +1,5 @@
-import { isProd } from "../../../../lib/api/env";
-import { httpError, httpJson } from "../../../../lib/api/http";
+import { isProd } from "../../../../../lib/api/env";
+import { httpError, httpJson } from "../../../../../lib/api/http";
 
 export const onRequestGet: PagesFunction = async ({ request, env }) => {
 	const url = new URL(request.url);

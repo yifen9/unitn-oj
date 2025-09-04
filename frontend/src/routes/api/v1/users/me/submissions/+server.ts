@@ -1,15 +1,18 @@
-import { readSidFromCookie, verifySession } from "../../../../lib/api/auth";
+import {
+	readSidFromCookie,
+	userIdFromEmail,
+	verifySession,
+} from "../../../../../../lib/api/auth";
 import {
 	getOptionalNumber,
 	getRequired,
 	isProd,
-} from "../../../../lib/api/env";
-import { httpError, httpJson } from "../../../../lib/api/http";
+} from "../../../../../../lib/api/env";
+import { httpError, httpJson } from "../../../../../../lib/api/http";
 
 export const onRequestGet: PagesFunction = async ({ request, env }) => {
 	const sid = readSidFromCookie(request);
 	if (!sid) return httpError("UNAUTHENTICATED", "sid cookie required", 401);
-
 	const sessionTtl = getOptionalNumber(
 		env,
 		"AUTH_SESSION_TTL_SECONDS",
@@ -24,15 +27,22 @@ export const onRequestGet: PagesFunction = async ({ request, env }) => {
 	} catch {
 		return httpError("UNAUTHENTICATED", "invalid or expired session", 401);
 	}
+	const uid = await userIdFromEmail(email);
 
 	try {
-		const row = await env.DB.prepare(
-			"SELECT user_id as userId, email, created_at as createdAt FROM users WHERE email=?1",
+		const r = await env.DB.prepare(
+			"SELECT submission_id as submissionId, user_id as userId, problem_id as problemId, status, created_at as createdAt " +
+				"FROM submissions WHERE user_id=?1 ORDER BY created_at DESC",
 		)
-			.bind(email)
-			.first<{ userId: string; email: string; createdAt: number }>();
-		if (!row) return httpError("UNAUTHENTICATED", "user not found", 401);
-		return httpJson({ ok: true, data: row });
+			.bind(uid)
+			.all<{
+				submissionId: string;
+				userId: string;
+				problemId: string;
+				status: string;
+				createdAt: number;
+			}>();
+		return httpJson({ ok: true, data: r.results });
 	} catch (e) {
 		if (isProd(env)) return httpError("INTERNAL", "database error", 500);
 		return httpError("INTERNAL", String(e));

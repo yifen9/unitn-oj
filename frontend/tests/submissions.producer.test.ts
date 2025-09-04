@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { signSession } from "../src/lib/api/auth";
-import * as mod from "../src/routes/api/v1/problems/[id]/submissions";
+import * as mod from "../src/routes/api/v1/problems/[id]/submissions/+server";
 import { makeCtx, makeD1Mock } from "./helpers";
 
 describe("POST /api/v1/problems/{id}/submissions", () => {

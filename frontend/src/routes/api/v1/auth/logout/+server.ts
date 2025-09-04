@@ -1,4 +1,4 @@
-import { isProd } from "../../../../lib/api/env";
+import { isProd } from "../../../../../lib/api/env";
 
 export const onRequestPost: PagesFunction = async ({ request, env }) => {
 	const prod = isProd(env);

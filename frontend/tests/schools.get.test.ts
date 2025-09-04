@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import * as mod from "../src/routes/api/v1/schools/[id]";
+import * as mod from "../src/routes/api/v1/schools/[id]/+server";
 import { makeCtx, makeD1Mock, readJson } from "./helpers";
 
 const DEV_ENV = { APP_ENV: "development" };

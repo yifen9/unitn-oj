@@ -1,5 +1,6 @@
 name = "unitn-oj-frontend"
 compatibility_date = "2024-09-03"
+compatibility_flags = ["nodejs_compat"]
 
 [[d1_databases]]
 binding = "DB"

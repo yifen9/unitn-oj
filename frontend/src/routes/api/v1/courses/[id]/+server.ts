@@ -1,10 +1,10 @@
-import { isProd } from "../../../../lib/api/env";
-import { httpError, httpJson } from "../../../../lib/api/http";
+import { isProd } from "../../../../../lib/api/env";
+import { httpError, httpJson } from "../../../../../lib/api/http";
 
 function readId(req: Request, params: Record<string, string> | undefined) {
 	const p = params?.id;
 	if (p) return p;
-	const m = new URL(req.url).pathname.match(/\/api\/v1\/schools\/([^/]+)$/);
+	const m = new URL(req.url).pathname.match(/\/api\/v1\/courses\/([^/]+)$/);
 	return m ? decodeURIComponent(m[1]) : "";
 }
 
@@ -13,14 +13,11 @@ export const onRequestGet: PagesFunction = async ({ request, env, params }) => {
 	if (!id) return httpError("INVALID_ARGUMENT", "id required", 400);
 	try {
 		const row = await env.DB.prepare(
-			"SELECT school_id as schoolId, name FROM schools WHERE school_id=?1",
+			"SELECT course_id as courseId, school_id as schoolId, name FROM courses WHERE course_id=?1",
 		)
 			.bind(id)
-			.first<{
-				schoolId: string;
-				name: string;
-			}>();
-		if (!row) return httpError("NOT_FOUND", "school not found", 404);
+			.first<{ courseId: string; schoolId: string; name: string }>();
+		if (!row) return httpError("NOT_FOUND", "course not found", 404);
 		return httpJson({ ok: true, data: row });
 	} catch (e) {
 		if (isProd(env)) return httpError("INTERNAL", "database error", 500);

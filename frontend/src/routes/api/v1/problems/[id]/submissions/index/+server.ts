@@ -2,13 +2,17 @@ import {
 	readSidFromCookie,
 	userIdFromEmail,
 	verifySession,
-} from "../../../../../../lib/api/auth";
+} from "../../../../../../../lib/api/auth";
 import {
 	getOptionalNumber,
 	getRequired,
 	isProd,
-} from "../../../../../../lib/api/env";
-import { httpError, httpJson, readJson } from "../../../../../../lib/api/http";
+} from "../../../../../../../lib/api/env";
+import {
+	httpError,
+	httpJson,
+	readJson,
+} from "../../../../../../../lib/api/http";
 
 function readProblemId(
 	req: Request,

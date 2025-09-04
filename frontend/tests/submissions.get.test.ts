@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { signSession, userIdFromEmail } from "../src/lib/api/auth";
-import * as mod from "../src/routes/api/v1/submissions/[id]";
+import * as mod from "../src/routes/api/v1/submissions/[id]/+server";
 import { makeCtx, makeD1Mock, readJson } from "./helpers";
 
 const DEV_ENV = {

@@ -1,10 +1,10 @@
-import { signSession, userIdFromEmail } from "../../../../lib/api/auth";
+import { signSession, userIdFromEmail } from "../../../../../lib/api/auth";
 import {
 	getOptionalNumber,
 	getRequired,
 	isProd,
-} from "../../../../lib/api/env";
-import { httpError, readJson } from "../../../../lib/api/http";
+} from "../../../../../lib/api/env";
+import { httpError, readJson } from "../../../../../lib/api/http";
 
 export const onRequest: PagesFunction = async ({ request, env }) => {
 	const prod = isProd(env);
