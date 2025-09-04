@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@main
-      - uses: pnpm/action-setup@main
+      - uses: pnpm/action-setup@master
         with:
           version: 8.15.5
       - uses: actions/setup-node@main
