@@ -12,8 +12,9 @@
     "prepare": "svelte-kit sync",
     "build": "vite build",
     "preview": "vite preview",
-    "dev": "pnpm prepare && wrangler pages dev",
-    "dev:init": "pnpm db:init && pnpm dev",
+    "dev": "pnpm prepare && pnpm build && wrangler pages dev",
+
+    "e2e": "pnpm db:init && pnpm dev",
 
     "lint": "biome check",
     "fix": "biome check --fix",

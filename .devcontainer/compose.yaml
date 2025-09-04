@@ -4,8 +4,8 @@ services:
     container_name: unitn-oj-frontend
     working_dir: /workspace/frontend
     ports:
-      - "8080:8080"
       - "4173:4173"
+      - "8080:8080"
     volumes:
       - "..:/workspace"
     command: >
