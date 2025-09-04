@@ -13,7 +13,8 @@
         "svelte.svelte-vscode",
         "bradlc.vscode-tailwindcss",
         "biomejs.biome",
-        "hashicorp.terraform"
+        "hashicorp.terraform",
+        "marcoroth.turbo-lsp"
       ]
     }
   }
