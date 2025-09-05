@@ -44,7 +44,7 @@ const handleVerify: RequestHandler = async (event) => {
 		}
 		email = row.email.toLowerCase();
 	} catch (e) {
-		console.error("D1 select failed:", e);
+		//console.error("D1 select failed:", e);
 		if (prod) return httpError("INTERNAL", "database error", 500);
 	}
 
@@ -59,7 +59,7 @@ const handleVerify: RequestHandler = async (event) => {
 			env.DB.prepare("DELETE FROM magic_tokens WHERE token=?1").bind(token),
 		]);
 	} catch (e) {
-		console.error("D1 upsert/delete failed:", e);
+		//console.error("D1 upsert/delete failed:", e);
 		if (prod) return httpError("INTERNAL", "database error", 500);
 	}
 

@@ -56,7 +56,7 @@ export const POST: RequestHandler = async (event) => {
 			.bind(token, email, expiresAt)
 			.run();
 	} catch (e) {
-		console.error("D1 insert failed:", e);
+		//console.error("D1 insert failed:", e);
 		if (prod) return httpError("INTERNAL", "database error", 500);
 	}
 
