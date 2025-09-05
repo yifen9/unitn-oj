@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { signSession } from "../src/lib/api/auth";
-import { GET } from "../src/routes/api/v1/users/me/+server";
+import { signSession } from "../../frontend/src/lib/api/auth";
+import { GET } from "../../frontend/src/routes/api/v1/users/me/+server";
 import { makeD1Mock, makeEvent, readJson } from "./helpers";
 
 const DEV = {

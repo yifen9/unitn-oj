@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { POST } from "../src/routes/api/v1/auth/requestLink/+server";
+import { POST } from "../../frontend/src/routes/api/v1/auth/requestLink/+server";
 import { makeD1Mock, makeEvent, readJson } from "./helpers";
 
 const DEV = {

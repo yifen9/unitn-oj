@@ -1,6 +1,6 @@
 import type { RequestHandler } from "@sveltejs/kit";
-import { isProd } from "$lib/api/env";
-import { httpError, httpJson } from "$lib/api/http";
+import { isProd } from "../../../../../../lib/api/env";
+import { httpError, httpJson } from "../../../../../../lib/api/http";
 
 export const GET: RequestHandler = async (event) => {
 	const env = event.platform.env as any;

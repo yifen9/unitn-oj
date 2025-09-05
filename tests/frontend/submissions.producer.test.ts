@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { signSession } from "../src/lib/api/auth";
-import { POST } from "../src/routes/api/v1/problems/[id]/submissions/+server";
+import { signSession } from "../../frontend/src/lib/api/auth";
+import { POST } from "../../frontend/src/routes/api/v1/problems/[id]/submissions/+server";
 import { makeD1Mock, makeEvent } from "./helpers";
 
 describe("POST /api/v1/problems/{id}/submissions", () => {

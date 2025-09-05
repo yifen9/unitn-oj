@@ -3,9 +3,13 @@ import {
 	readSidFromCookie,
 	userIdFromEmail,
 	verifySession,
-} from "$lib/api/auth";
-import { getOptionalNumber, getRequired, isProd } from "$lib/api/env";
-import { httpError, httpJson, readJson } from "$lib/api/http";
+} from "../../../../../../lib/api/auth";
+import {
+	getOptionalNumber,
+	getRequired,
+	isProd,
+} from "../../../../../../lib/api/env";
+import { httpError, httpJson, readJson } from "../../../../../../lib/api/http";
 
 function randomId() {
 	const b = new Uint8Array(8);

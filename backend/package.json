@@ -1,10 +1,10 @@
 {
-  "name": "unitn-oj-backend",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "build": "echo \"TODO: backend build\"",
-    "test": "echo \"TODO: backend test\""
-  }
+	"name": "unitn-oj-backend",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"build": "echo \"TODO: backend build\"",
+		"test": "echo \"TODO: backend test\""
+	}
 }

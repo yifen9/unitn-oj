@@ -1,5 +1,5 @@
 import type { RequestHandler } from "@sveltejs/kit";
-import { isProd } from "$lib/api/env";
+import { isProd } from "../../../../../lib/api/env";
 
 export const POST: RequestHandler = async (event) => {
 	const prod = isProd(event.platform.env);

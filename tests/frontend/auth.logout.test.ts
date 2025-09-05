@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { POST } from "../src/routes/api/v1/auth/logout/+server";
+import { POST } from "../../frontend/src/routes/api/v1/auth/logout/+server";
 import { makeEvent, readJson } from "./helpers";
 
 describe("POST /api/v1/auth/logout", () => {

@@ -1,6 +1,10 @@
 import type { RequestHandler } from "@sveltejs/kit";
-import { getOptionalNumber, getRequired, isProd } from "$lib/api/env";
-import { httpError, httpJson, readJson } from "$lib/api/http";
+import {
+	getOptionalNumber,
+	getRequired,
+	isProd,
+} from "../../../../../lib/api/env";
+import { httpError, httpJson, readJson } from "../../../../../lib/api/http";
 
 function randomHex(len = 32) {
 	const bytes = new Uint8Array(len);

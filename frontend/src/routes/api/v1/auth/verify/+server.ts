@@ -1,7 +1,11 @@
 import type { RequestHandler } from "@sveltejs/kit";
-import { signSession, userIdFromEmail } from "$lib/api/auth";
-import { getOptionalNumber, getRequired, isProd } from "$lib/api/env";
-import { httpError, readJson } from "$lib/api/http";
+import { signSession, userIdFromEmail } from "../../../../../lib/api/auth";
+import {
+	getOptionalNumber,
+	getRequired,
+	isProd,
+} from "../../../../../lib/api/env";
+import { httpError, readJson } from "../../../../../lib/api/http";
 
 const handleVerify: RequestHandler = async (event) => {
 	const { request, platform } = event;

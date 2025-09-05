@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { GET } from "../src/routes/api/v1/courses/[courseId]/problems/[id]/+server";
+import { GET } from "../../frontend/src/routes/api/v1/courses/[courseId]/problems/[id]/+server";
 import { makeD1Mock, makeEvent, readJson } from "./helpers";
 
 const DEV_ENV = { APP_ENV: "development" };

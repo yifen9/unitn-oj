@@ -1,7 +1,11 @@
 import type { RequestHandler } from "@sveltejs/kit";
-import { readSidFromCookie, verifySession } from "$lib/api/auth";
-import { getOptionalNumber, getRequired, isProd } from "$lib/api/env";
-import { httpError, httpJson } from "$lib/api/http";
+import { readSidFromCookie, verifySession } from "../../../../../lib/api/auth";
+import {
+	getOptionalNumber,
+	getRequired,
+	isProd,
+} from "../../../../../lib/api/env";
+import { httpError, httpJson } from "../../../../../lib/api/http";
 
 export const GET: RequestHandler = async (event) => {
 	const env = event.platform.env as any;
