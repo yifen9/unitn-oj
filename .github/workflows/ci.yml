@@ -3,21 +3,22 @@ name: CI
 on:
   push:
     branches: [ "main" ]
+  pull_request:
 
 jobs:
-  test:
+  check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@main
-      - uses: pnpm/action-setup@master
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
         with:
           version: 8.15.5
-      - uses: actions/setup-node@main
+          run_install: false
+      - uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: 'lts/*'
           cache: 'pnpm'
-          cache-dependency-path: frontend/pnpm-lock.yaml
-      - working-directory: frontend
-        run: pnpm install --frozen-lockfile
-      - working-directory: frontend
-        run: pnpm check:ci
+          cache-dependency-path: |
+            frontend/pnpm-lock.yaml
+      - run: pnpm install
+      - run: pnpm -r run check:ci

@@ -2,7 +2,7 @@ services:
   unitn-oj:
     image: node:20-bookworm
     container_name: unitn-oj
-    working_dir: /workspace/frontend
+    working_dir: /workspace
     ports:
       - "4173:4173"
       - "8080:8080"
@@ -13,7 +13,7 @@ services:
         set -e;
         corepack enable &&
         corepack prepare pnpm@8.15.5 --activate &&
-        pnpm install --frozen-lockfile &&
-        pnpm build &&
+        pnpm install &&
+        pnpm -r build &&
         tail -f /dev/null
       "
