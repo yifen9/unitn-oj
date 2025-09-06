@@ -5,6 +5,7 @@
   "packageManager": "pnpm@8.15.5",
   "type": "module",
   "scripts": {
+    "db:migrate:remote": "pnpm --filter frontend wrangler d1 migrations apply unitn-oj-dev --remote -y",
     "build": "pnpm -r build",
     "dev": "pnpm --filter frontend dev",
     "lint": "biome check",

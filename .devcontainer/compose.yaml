@@ -1,11 +1,16 @@
 services:
   unitn-oj:
-    image: node:20-bookworm
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: unitn-oj-dev
     container_name: unitn-oj
     working_dir: /workspace
     ports:
       - "4173:4173"
       - "8080:8080"
+    env_file:
+      - dev.env
     volumes:
       - "..:/workspace"
     command: >

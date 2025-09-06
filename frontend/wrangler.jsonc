@@ -1,40 +1,32 @@
 {
-	"name": "unitn-oj-frontend",
+  "name": "unitn-oj-frontend",
 
-	"compatibility_date": "2024-09-23",
-	"compatibility_flags": ["nodejs_compat"],
+  "compatibility_date": "2025-09-06",
+  "compatibility_flags": ["nodejs_compat"],
 
-	"pages_build_output_dir": ".svelte-kit/cloudflare",
+  "pages_build_output_dir": ".svelte-kit/cloudflare",
 
-	"dev": {
-		"ip": "0.0.0.0",
-		"port": 8080,
-		"local_protocol": "http"
-	},
+  "dev": {
+    "ip": "0.0.0.0",
+    "port": 8080,
+    "local_protocol": "http"
+  },
 
-	"d1_databases": [
-		{
-			"binding": "DB",
-			"database_name": "unitn_oj_local",
-			"database_id": "LOCAL",
-			"migrations_dir": "d1/migrations"
-		}
-	],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "unitn_oj_local",
+      "database_id": "LOCAL",
+      "migrations_dir": "d1/migrations"
+    }
+  ],
 
-	"queues": {
-		"producers": [
-			{
-				"queue": "submissions",
-				"binding": "QUEUE_SUBMISSIONS"
-			}
-		]
-	},
-
-	"vars": {
-		"APP_ENV": "dev",
-		"AUTH_ALLOWED_DOMAIN": "studenti.unitn.it",
-		"AUTH_TOKEN_TTL_SECONDS": "300",
-		"AUTH_SESSION_TTL_SECONDS": "604800",
-		"AUTH_SESSION_SECRET": "dev-secret"
-	}
+  "queues": {
+    "producers": [
+      {
+        "queue": "unitn-oj-submissions-dev",
+        "binding": "QUEUE_SUBMISSIONS"
+      }
+    ]
+  }
 }

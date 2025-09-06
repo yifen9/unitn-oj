@@ -6,6 +6,7 @@
   "customizations": {
     "vscode": {
       "extensions": [
+        "jeff-hykin.better-dockerfile-syntax",
         "ms-vscode.vscode-typescript-next",
         "jacano.vscode-pnpm",
         "antfu.vite",
@@ -14,7 +15,8 @@
         "bradlc.vscode-tailwindcss",
         "biomejs.biome",
         "hashicorp.terraform",
-        "marcoroth.turbo-lsp"
+        "marcoroth.turbo-lsp",
+        "hashicorp.hcl"
       ]
     }
   }
