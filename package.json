@@ -23,14 +23,14 @@
     "db:init:local": "pnpm --filter ./frontend db:init",
 
     "db:reset:dev": "pnpm tf:select:dev && pnpm tf:destroy:dev:db && pnpm tf:apply:dev && pnpm tf:output:d1",
-    "db:migrate:dev": "pnpm --filter ./frontend exec wrangler --cwd ../deploy/dev d1 migrations apply DB --env production --remote",
-    "db:seed:dev": "pnpm --filter ./frontend exec wrangler --cwd ../deploy/dev d1 execute DB --env production --remote --file ../../frontend/d1/seed/dev_seed.sql",
+    "db:migrate:dev": "pnpm --filter ./frontend exec wrangler --cwd ../deploy/cloudflare/dev d1 migrations apply DB --env production --remote",
+    "db:seed:dev": "pnpm --filter ./frontend exec wrangler --cwd ../deploy/cloudflare/dev d1 execute DB --env production --remote --file ../../frontend/d1/seed/dev_seed.sql",
     "db:init:dev": "pnpm db:reset:dev && pnpm gen:wrangler:dev && pnpm db:migrate:dev && pnpm db:seed:dev",
 
-    "pages:deploy:dev:prod": "pnpm --filter ./frontend build && pnpm --filter ./frontend exec wrangler --cwd ../deploy/dev pages deploy --project-name unitn-oj-dev --branch main",
-    "pages:deploy:dev:preview": "pnpm --filter ./frontend build && pnpm --filter ./frontend exec wrangler --cwd ../deploy/dev pages deploy --project-name unitn-oj-dev --branch feature/demo",
-    "pages:deploy:prod:prod": "pnpm --filter ./frontend build && pnpm --filter ./frontend exec wrangler --cwd ../deploy/prod pages deploy --project-name unitn-oj --branch main",
-    "pages:deploy:prod:preview": "pnpm --filter ./frontend build && pnpm --filter ./frontend exec wrangler --cwd ../deploy/prod pages deploy --project-name unitn-oj --branch feature/demo",
+    "pages:deploy:dev:prod": "pnpm --filter ./frontend build && pnpm --filter ./frontend exec wrangler --cwd ../deploy/cloudflare/dev pages deploy --project-name unitn-oj-dev --branch main",
+    "pages:deploy:dev:preview": "pnpm --filter ./frontend build && pnpm --filter ./frontend exec wrangler --cwd ../deploy/cloudflare/dev pages deploy --project-name unitn-oj-dev --branch feature/demo",
+    "pages:deploy:prod:prod": "pnpm --filter ./frontend build && pnpm --filter ./frontend exec wrangler --cwd ../deploy/cloudflare/prod pages deploy --project-name unitn-oj --branch main",
+    "pages:deploy:prod:preview": "pnpm --filter ./frontend build && pnpm --filter ./frontend exec wrangler --cwd ../deploy/cloudflare/prod pages deploy --project-name unitn-oj --branch feature/demo",
 
     "build": "pnpm -r build",
     "dev": "pnpm --filter ./frontend dev",
