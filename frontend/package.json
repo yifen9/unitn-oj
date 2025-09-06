@@ -8,6 +8,7 @@
 		"db:apply:local": "wrangler d1 migrations apply DB --local",
 		"db:seed:local": "wrangler d1 execute DB --local --file d1/seed/dev_seed.sql",
 		"db:init:local": "pnpm db:apply:local && pnpm db:seed:local",
+		"db:migrate:remote": "wrangler d1 migrations apply unitn-oj-dev --remote -y",
 		"prepare": "svelte-kit sync",
 		"build": "vite build",
 		"preview": "vite preview",
