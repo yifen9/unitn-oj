@@ -12,7 +12,8 @@
 			"infra/**/*",
 			"tests/**/*",
 			"deploy/**/*",
-			"scripts/**/*"
+			"scripts/**/*",
+			"docs/**/*"
 		]
 	},
 	"assist": {
