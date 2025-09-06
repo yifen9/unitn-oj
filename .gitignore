@@ -1,2 +1,3 @@
 .pnpm-store
+.wrangler
 node_modules

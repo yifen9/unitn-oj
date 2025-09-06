@@ -10,7 +10,7 @@ services:
       - "4173:4173"
       - "8080:8080"
     env_file:
-      - dev.env
+      - .dev.env
     volumes:
       - "..:/workspace"
     command: >

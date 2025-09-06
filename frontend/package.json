@@ -5,15 +5,16 @@
 	"packageManager": "pnpm@8.15.5",
 	"type": "module",
 	"scripts": {
-		"db:apply:local": "wrangler d1 migrations apply DB --local",
-		"db:seed:local": "wrangler d1 execute DB --local --file d1/seed/dev_seed.sql",
-		"db:init:local": "pnpm db:apply:local && pnpm db:seed:local",
-		"db:migrate:remote": "wrangler d1 migrations apply unitn-oj-dev --remote -y",
+		"db:reset": "rm -rf .wrangler/state",
+		"db:migrate": "wrangler d1 migrations apply DB --local",
+		"db:seed": "wrangler d1 execute DB --local --file d1/seed/dev_seed.sql",
+		"db:init": "pnpm db:reset && pnpm db:migrate && pnpm db:seed",
+
 		"prepare": "svelte-kit sync",
 		"build": "vite build",
 		"preview": "vite preview",
 		"dev": "pnpm prepare && pnpm build && wrangler pages dev",
-		"e2e": "pnpm db:init && pnpm dev"
+		"dev:init": "pnpm db:init && pnpm dev"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20250904.0",
