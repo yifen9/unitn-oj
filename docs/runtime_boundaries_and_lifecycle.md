@@ -1,4 +1,4 @@
-# UNITN OJ — Backend/Frontend Boundaries & End-to-End Lifecycle
+# Backend/Frontend Boundaries & End-to-End Lifecycle
 
 This document clarifies responsibilities between the **frontend (edge platform)**
 and the **backend (consumer on VPS)**, and describes the end-to-end flows:

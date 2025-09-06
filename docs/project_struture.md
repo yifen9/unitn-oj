@@ -1,4 +1,4 @@
-# UNITN OJ — Project Structure & Conventions
+# Project Structure & Conventions
 
 This document describes the monorepo layout, responsibilities of each top-level
 directory, environment strategy, and the core workflows (local dev, dev cloud,
