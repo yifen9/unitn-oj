@@ -14,9 +14,7 @@
 				}
 			],
 			"queues": {
-				"producers": [
-					{ "queue": "unitn-oj-submissions", "binding": "QUEUE_SUBMISSIONS" }
-				]
+				"producers": [{ "queue": "unitn-oj-submissions", "binding": "QUEUE" }]
 			},
 			"vars": {
 				"APP_ENV": "prod",
@@ -35,9 +33,7 @@
 				}
 			],
 			"queues": {
-				"producers": [
-					{ "queue": "unitn-oj-submissions", "binding": "QUEUE_SUBMISSIONS" }
-				]
+				"producers": [{ "queue": "unitn-oj-submissions", "binding": "QUEUE" }]
 			},
 			"vars": {
 				"APP_ENV": "prod",

@@ -26,7 +26,7 @@ authentication (magic link), submission, judging, persistence, and deployment.
   - Verify callback, exchange for session, set session cookie (TTL).
 - **Submissions**:
   - Validate submission and persist an initial `queued` record in D1.
-  - **Produce** a job message to Queues (`QUEUE_SUBMISSIONS`).
+  - **Produce** a job message to Queues (`QUEUE`).
   - Provide immediate acknowledgment to the user and a status endpoint.
 - **Result ingestion**:
   - Expose a **private Platform API** (Pages Function) that accepts result

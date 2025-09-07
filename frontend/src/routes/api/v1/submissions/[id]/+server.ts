@@ -10,49 +10,31 @@ import {
 	isProd,
 } from "../../../../../lib/api/env";
 import { httpError, httpJson } from "../../../../../lib/api/http";
+import { getOwned } from "../../../../../lib/data/submissions";
 
 export const GET: RequestHandler = async (event) => {
 	const env = event.platform.env as any;
-
 	const submissionId = event.params.id || "";
 	if (!submissionId) return httpError("INVALID_ARGUMENT", "id required", 400);
 
 	const sid = readSidFromCookie(event.request);
 	if (!sid) return httpError("UNAUTHENTICATED", "sid cookie required", 401);
 
-	const sessionTtl = getOptionalNumber(
-		env,
-		"AUTH_SESSION_TTL_SECONDS",
-		7 * 24 * 3600,
-	);
+	const ttl = getOptionalNumber(env, "AUTH_SESSION_TTL_SECONDS", 7 * 24 * 3600);
 	const secret = getRequired(env, "AUTH_SESSION_SECRET");
-
 	let email = "";
 	try {
-		const s = await verifySession(secret, sid, sessionTtl);
-		email = s.email;
+		email = (await verifySession(secret, sid, ttl)).email;
 	} catch {
 		return httpError("UNAUTHENTICATED", "invalid or expired session", 401);
 	}
 	const uid = await userIdFromEmail(email);
 
 	try {
-		const row = await env.DB.prepare(
-			"SELECT submission_id as submissionId, user_id as userId, problem_id as problemId, status, created_at as createdAt FROM submissions WHERE submission_id=?1",
-		)
-			.bind(submissionId)
-			.first<{
-				submissionId: string;
-				userId: string;
-				problemId: string;
-				status: string;
-				createdAt: number;
-			}>();
-
+		const row = await getOwned(env, submissionId);
 		if (!row) return httpError("NOT_FOUND", "submission not found", 404);
 		if (row.userId !== uid)
 			return httpError("PERMISSION_DENIED", "not owner", 403);
-
 		return httpJson({ ok: true, data: row });
 	} catch (e) {
 		if (isProd(env)) return httpError("INTERNAL", "database error", 500);

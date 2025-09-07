@@ -41,6 +41,9 @@
     "db:seed:prod": "pnpm --filter ./frontend exec wrangler --cwd ../deploy/cloudflare/prod d1 execute DB --env production --remote --file ../../../frontend/d1/seed/prod_seed.sql",
     "db:init:prod": "pnpm db:reset:prod && pnpm gen:wrangler:prod && pnpm db:migrate:prod && pnpm db:seed:prod",
 
+    "queue:purge:dev": "pnpm --filter ./frontend exec wrangler queues purge unitn-oj-submissions-dev",
+    "queue:purge:prod": "pnpm --filter ./frontend exec wrangler queues purge unitn-oj-submissions",
+
     "pages:deploy:dev:prod": "pnpm --filter ./frontend build && pnpm --filter ./frontend exec wrangler --cwd ../deploy/cloudflare/dev pages deploy --project-name unitn-oj-dev --branch main",
     "pages:deploy:dev:preview": "pnpm --filter ./frontend build && pnpm --filter ./frontend exec wrangler --cwd ../deploy/cloudflare/dev pages deploy --project-name unitn-oj-dev --branch feature/demo",
     "pages:deploy:prod:prod": "pnpm --filter ./frontend build && pnpm --filter ./frontend exec wrangler --cwd ../deploy/cloudflare/prod pages deploy --project-name unitn-oj --branch main",

@@ -23,7 +23,7 @@
 		"producers": [
 			{
 				"queue": "unitn-oj-submissions-dev",
-				"binding": "QUEUE_SUBMISSIONS"
+				"binding": "QUEUE"
 			}
 		]
 	}

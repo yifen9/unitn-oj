@@ -10,11 +10,12 @@ import {
 	isProd,
 } from "../../../../../../lib/api/env";
 import { httpError, httpJson, readJson } from "../../../../../../lib/api/http";
+import { createQueued } from "../../../../../../lib/data/submissions";
 
 function randomId() {
 	const b = new Uint8Array(8);
 	crypto.getRandomValues(b);
-	return `s_${[...b].map((x) => x.toString(16).padStart(2, "0")).join("")}`;
+	return `S_${[...b].map((x) => x.toString(16).padStart(2, "0")).join("")}`;
 }
 
 export const POST: RequestHandler = async (event) => {
@@ -28,16 +29,14 @@ export const POST: RequestHandler = async (event) => {
 
 	const ttl = getOptionalNumber(env, "AUTH_SESSION_TTL_SECONDS", 7 * 24 * 3600);
 	const secret = getRequired(env, "AUTH_SESSION_SECRET");
-
 	let email = "";
 	try {
-		const s = await verifySession(secret, sid, ttl);
-		email = s.email;
+		email = (await verifySession(secret, sid, ttl)).email;
 	} catch {
 		return httpError("UNAUTHENTICATED", "invalid or expired session", 401);
 	}
 
-	let body: { code?: string };
+	let body: { code?: string; language?: string } = {};
 	try {
 		body = await readJson(event.request);
 	} catch (e) {
@@ -47,43 +46,22 @@ export const POST: RequestHandler = async (event) => {
 	if (!code.trim()) return httpError("INVALID_ARGUMENT", "code required", 400);
 
 	const userId = await userIdFromEmail(email);
-	const submissionId = randomId();
 	const now = Math.floor(Date.now() / 1000);
+	const submissionId = randomId();
 
 	try {
-		await env.DB.prepare(
-			"INSERT INTO submissions (submission_id,user_id,problem_id,code,status,created_at) VALUES (?1,?2,?3,?4,?5,?6)",
-		)
-			.bind(submissionId, userId, problemId, code, "queued", now)
-			.run();
+		const dto = await createQueued(env, {
+			submissionId,
+			userId,
+			problemId,
+			code,
+			language: body.language,
+			now,
+		});
+		return httpJson({ ok: true, data: dto }, 201);
 	} catch (e) {
-		if (isProd(env)) return httpError("INTERNAL", "database error", 500);
+		if (isProd(env))
+			return httpError("INTERNAL", "database or queue error", 500);
 		return httpError("INTERNAL", String(e));
 	}
-
-	try {
-		await env.QUEUE_SUBMISSIONS.send({
-			submissionId,
-			problemId,
-			userId,
-			createdAt: now,
-		});
-	} catch {
-		if (isProd(env)) return httpError("INTERNAL", "queue error", 500);
-		return httpError("INTERNAL", "queue error", 500);
-	}
-
-	return httpJson(
-		{
-			ok: true,
-			data: {
-				submissionId,
-				userId,
-				problemId,
-				status: "queued",
-				createdAt: now,
-			},
-		},
-		201,
-	);
 };
