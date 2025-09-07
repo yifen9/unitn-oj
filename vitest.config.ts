@@ -17,6 +17,13 @@ export default defineConfig({
           environment: 'node',
           include: ['tests/backend/**/*.test.{js,ts}']
         }
+      },
+      {
+        test: {
+          name: 'e2e',
+          environment: 'node',
+          include: ['tests/e2e/**/*.test.{js,ts}']
+        }
       }
     ]
   }

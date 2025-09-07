@@ -6,6 +6,18 @@ import {
 	isProd,
 } from "../../../../../lib/api/env";
 import { httpError, readJson } from "../../../../../lib/api/http";
+import { logError } from "../../../../../lib/api/log";
+
+export const GET: RequestHandler = async (event) => {
+	const env = event.platform.env as unknown as Record<string, string>;
+	if (isProd(env)) {
+		const u = new URL(event.request.url);
+		const token = u.searchParams.get("token") ?? "";
+		const to = `/auth/continue${token ? `?token=${encodeURIComponent(token)}` : ""}`;
+		return new Response(null, { status: 302, headers: { location: to } });
+	}
+	return handleVerify(event);
+};
 
 const handleVerify: RequestHandler = async (event) => {
 	const { request, platform } = event;
@@ -33,7 +45,6 @@ const handleVerify: RequestHandler = async (event) => {
 		)
 			.bind(token)
 			.first<{ email: string; expires_at: number }>();
-
 		if (!row) return httpError("UNAUTHENTICATED", "token not found", 401);
 		if (row.expires_at < Math.floor(Date.now() / 1000)) {
 			await env.DB.prepare("DELETE FROM magic_tokens WHERE token=?1")
@@ -44,8 +55,10 @@ const handleVerify: RequestHandler = async (event) => {
 		}
 		email = row.email.toLowerCase();
 	} catch (e) {
-		//console.error("D1 select failed:", e);
-		if (prod) return httpError("INTERNAL", "database error", 500);
+		//logError("d1.select.magic_tokens.failed", { err: String(e) });
+		return prod
+			? httpError("INTERNAL", "database error", 500)
+			: httpError("INTERNAL", "database error (dev)", 500);
 	}
 
 	const nowSec = Math.floor(Date.now() / 1000);
@@ -59,8 +72,10 @@ const handleVerify: RequestHandler = async (event) => {
 			env.DB.prepare("DELETE FROM magic_tokens WHERE token=?1").bind(token),
 		]);
 	} catch (e) {
-		//console.error("D1 upsert/delete failed:", e);
-		if (prod) return httpError("INTERNAL", "database error", 500);
+		//logError("d1.batch.user_upsert_delete_token.failed", { err: String(e) });
+		return prod
+			? httpError("INTERNAL", "database error", 500)
+			: httpError("INTERNAL", "database error (dev)", 500);
 	}
 
 	const sessionTtlSeconds = getOptionalNumber(
@@ -69,7 +84,7 @@ const handleVerify: RequestHandler = async (event) => {
 		7 * 24 * 3600,
 	);
 	const secret = getRequired(env, "AUTH_SESSION_SECRET");
-	const sid = await signSession(secret || "dev-secret", email);
+	const sid = await signSession(secret, email);
 
 	const headers = new Headers({ "content-type": "application/json" });
 	const cookieAttrs = [
@@ -78,7 +93,7 @@ const handleVerify: RequestHandler = async (event) => {
 		"Path=/",
 		`Max-Age=${sessionTtlSeconds}`,
 		"SameSite=Lax",
-		isProd(env) ? "Secure" : "",
+		prod ? "Secure" : "",
 	]
 		.filter(Boolean)
 		.join("; ");
@@ -89,5 +104,4 @@ const handleVerify: RequestHandler = async (event) => {
 	});
 };
 
-export const GET: RequestHandler = (event) => handleVerify(event);
 export const POST: RequestHandler = (event) => handleVerify(event);
