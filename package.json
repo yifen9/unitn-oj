@@ -44,12 +44,12 @@
     "queue:purge:dev": "pnpm --filter ./frontend exec wrangler queues purge unitn-oj-submissions-dev",
     "queue:purge:prod": "pnpm --filter ./frontend exec wrangler queues purge unitn-oj-submissions",
 
-    "pages:deploy:dev:prod": "pnpm --filter ./frontend build && pnpm --filter ./frontend exec wrangler --cwd ../deploy/cloudflare/dev pages deploy --project-name unitn-oj-dev --branch main",
-    "pages:deploy:dev:preview": "pnpm --filter ./frontend build && pnpm --filter ./frontend exec wrangler --cwd ../deploy/cloudflare/dev pages deploy --project-name unitn-oj-dev --branch feature/demo",
-    "pages:deploy:prod:prod": "pnpm --filter ./frontend build && pnpm --filter ./frontend exec wrangler --cwd ../deploy/cloudflare/prod pages deploy --project-name unitn-oj --branch main",
-    "pages:deploy:prod:preview": "pnpm --filter ./frontend build && pnpm --filter ./frontend exec wrangler --cwd ../deploy/cloudflare/prod pages deploy --project-name unitn-oj --branch feature/demo",
+    "pages:deploy:dev:prod": "pnpm build && pnpm --filter ./frontend exec wrangler --cwd ../deploy/cloudflare/dev pages deploy --project-name unitn-oj-dev --branch main",
+    "pages:deploy:dev:preview": "pnpm build && pnpm --filter ./frontend exec wrangler --cwd ../deploy/cloudflare/dev pages deploy --project-name unitn-oj-dev --branch feature/demo",
+    "pages:deploy:prod:prod": "pnpm build && pnpm --filter ./frontend exec wrangler --cwd ../deploy/cloudflare/prod pages deploy --project-name unitn-oj --branch main",
+    "pages:deploy:prod:preview": "pnpm build && pnpm --filter ./frontend exec wrangler --cwd ../deploy/cloudflare/prod pages deploy --project-name unitn-oj --branch feature/demo",
 
-    "build": "pnpm -r build",
+    "build": "pnpm --filter ./frontend build",
     "dev": "pnpm --filter ./frontend dev",
     "dev:init": "pnpm --filter ./frontend dev:init",
     "lint": "biome check",
