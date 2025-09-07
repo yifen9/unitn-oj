@@ -27,7 +27,6 @@ async function signOut() {
       {:else}
         <div style="display:flex;gap:10px;align-items:center;">
           <a href="/login">Login</a>
-          <a href="/login">Register</a>
         </div>
       {/if}
     </nav>

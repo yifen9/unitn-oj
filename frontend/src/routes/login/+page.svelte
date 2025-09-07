@@ -1,7 +1,8 @@
 <script lang="ts">
 import { onMount } from "svelte";
 
-const email = "";
+// biome-ignore lint/style/useConst: svelte bind
+let email: string = "";
 let turnstileToken = "";
 let sending = false;
 let message = "";
