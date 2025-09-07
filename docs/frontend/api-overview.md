@@ -1,102 +1,179 @@
-# api-overview
+# API Overview
 
-## Versioning
-- Base path: `/api/v1/`
-- All responses are JSON.
-- Success response:
+> Version: v1 (base path: `/api/v1/`)
 
-  ```json
-  { "ok": true, "data": { ... } }
-  ```
+All responses are JSON.
 
-* Error response:
+Success
 
-  ```json
-  { "ok": false, "error": { "code": "INVALID_ARGUMENT", "message": "..." } }
-  ```
+```json
+{ "ok": true, "data": { /* payload */ } }
+```
+
+Error
+
+```json
+{ "ok": false, "error": { "code": "INVALID_ARGUMENT", "message": "..." } }
+```
+
+## Error Codes
+
+`INVALID_ARGUMENT` · `FAILED_PRECONDITION` · `UNAUTHENTICATED` · `PERMISSION_DENIED` · `NOT_FOUND` · `RESOURCE_EXHAUSTED` · `INTERNAL`
+
+## HTTP Status
+
+* 200 OK – Successful read or non-creating action
+* 201 Created – Resource created (e.g. submission)
+* 401 Unauthorized – Missing/invalid `sid`
+* 403 Forbidden – Authenticated but not allowed (e.g. not owner)
+* 404 Not Found – Resource does not exist
+* 415 Unsupported Media Type – JSON required
+* 5xx – Server-side errors (prod only leaks generic message)
+
+## Authentication
+
+* Session cookie: `sid`
+
+  * Attributes: `HttpOnly; Path=/; SameSite=Lax; Max-Age=<env>;` plus `Secure` in production
+* Allowed email domain: `@studenti.unitn.it`
+* In dev, magic link is returned in the response; in prod it is sent via email
 
 ---
 
 ## Auth
 
-### `POST /auth/requestLink`
+### POST `/auth/requestLink`
 
-* Input: `{ "email": "user@studenti.unitn.it" }`
-* Output (dev): `{ "ok": true, "data": { "magicUrl": "..." } }`
-* Output (prod): `{ "ok": true }`
-* Purpose: Request a magic link to login.
+Input
 
-### `GET /auth/verify?token=...`
+```json
+{ "email": "user@studenti.unitn.it" }
+```
 
-* Input: token in query or POST body.
-* Output: `{ "ok": true, "data": { "userId": "...", "email": "..." } }`
-* Purpose: Verify token, upsert user, issue session cookie.
+Output (dev)
 
-### `POST /auth/logout`
+```json
+{ "ok": true, "data": { "magicUrl": "https://.../auth/verify?token=..." } }
+```
 
-* Output: `{ "ok": true }`
-* Purpose: Clear `sid` cookie.
+Output (prod)
+
+```json
+{ "ok": true }
+```
+
+Purpose: Request a magic link to sign in.
+
+### GET `/auth/verify?token=...`
+
+* Input: `token` in query (or POST body)
+* Output
+
+```json
+{ "ok": true, "data": { "userId": "u_...", "email": "user@studenti.unitn.it" } }
+```
+
+Purpose: Verify token, upsert user, issue `sid` cookie.
+
+### POST `/auth/logout`
+
+Output
+
+```json
+{ "ok": true }
+```
+
+Purpose: Clear `sid` cookie.
 
 ---
 
 ## Users
 
-### `GET /users/me`
+### GET `/users/me`
 
-* Output: `{ "ok": true, "data": { "userId": "...", "email": "..." } }`
-* Purpose: Get current logged-in user.
+Output
+
+```json
+{ "ok": true, "data": { "userId": "u_...", "email": "..." } }
+```
+
+Purpose: Return the current authenticated user.
 
 ---
 
 ## Schools
 
-### `GET /schools`
+### GET `/schools`
 
-* Output: `{ "ok": true, "data": [ { "schoolId": "...", "name": "..." } ] }`
-* Purpose: List all schools.
+Output
 
-### `GET /schools/{id}`
+```json
+{ "ok": true, "data": [ { "schoolId": "unitn", "name": "University of Trento" } ] }
+```
 
-* Purpose: Get school detail.
+Purpose: List all schools.
+
+### GET `/schools/{id}`
+
+Purpose: Get a school by id.
 
 ---
 
 ## Courses
 
-### `GET /courses`
+### GET `/courses`
 
-* Output: list of courses, optional filter by `schoolId`.
+Purpose: List courses. Optional filter by `schoolId`.
 
-### `GET /courses/{id}`
+### GET `/courses/{id}`
 
-* Purpose: Get course detail.
+Purpose: Get a course by id.
 
 ---
 
 ## Problems
 
-### `GET /courses/{courseId}/problems`
+### GET `/courses/{courseId}/problems`
 
-* Purpose: List problems under a course.
+Purpose: List problems under a course.
 
-### `GET /courses/{courseId}/problems/{id}`
+### GET `/courses/{courseId}/problems/{id}`
 
-* Purpose: Get problem detail.
+Purpose: Get problem detail.
 
 ---
 
 ## Submissions
 
-### `POST /problems/{id}/submissions`
+### POST `/problems/{id}/submissions`
 
-* Input: `{ "code": "..." }`
-* Output: submission record (status = `queued`).
-* Purpose: Create a submission.
+Input
 
-### `GET /submissions/{id}`
+```json
+{ "code": "..." }
+```
 
-* Purpose: Get submission detail (must be owner).
+Output (201)
 
-### `GET /users/me/submissions`
+```json
+{
+  "ok": true,
+  "data": {
+    "submissionId": "s_...",
+    "userId": "u_...",
+    "problemId": "...",
+    "status": "queued",
+    "createdAt": 1736272000
+  }
+}
+```
 
-* Purpose: Get current user's submissions.
+Purpose: Create a submission (enqueued for judging).
+
+### GET `/submissions/{id}`
+
+Purpose: Get submission detail (must be owner).
+
+### GET `/users/me/submissions`
+
+Purpose: List the current user’s submissions (newest first).
