@@ -3,7 +3,7 @@
 	"compatibility_date": "2025-09-06",
 	"compatibility_flags": ["nodejs_compat"],
 
-	"pages_build_output_dir": "../../frontend/.svelte-kit/cloudflare",
+	"pages_build_output_dir": "../../../frontend/.svelte-kit/cloudflare",
 
 	"env": {
 		"preview": {
@@ -11,8 +11,8 @@
 				{
 					"binding": "DB",
 					"database_name": "unitn-oj-dev",
-					"database_id": "84a77c0f-9983-43da-bd6c-35982cb191bb",
-					"migrations_dir": "../../frontend/d1/migrations"
+					"database_id": "7eed840d-0135-441a-a24d-d4ec7133a1f1",
+					"migrations_dir": "../../../frontend/d1/migrations"
 				}
 			],
 			"queues": {
@@ -28,7 +28,7 @@
 				"AUTH_ALLOWED_DOMAIN": "studenti.unitn.it",
 				"AUTH_TOKEN_TTL_SECONDS": "300",
 				"AUTH_SESSION_TTL_SECONDS": "604800",
-				"AUTH_SESSION_SECRET": "remote-dev-secret"
+				"AUTH_SESSION_SECRET": "remote-dev-preview-secret"
 			}
 		},
 		"production": {
@@ -36,8 +36,8 @@
 				{
 					"binding": "DB",
 					"database_name": "unitn-oj-dev",
-					"database_id": "84a77c0f-9983-43da-bd6c-35982cb191bb",
-					"migrations_dir": "../../frontend/d1/migrations"
+					"database_id": "7eed840d-0135-441a-a24d-d4ec7133a1f1",
+					"migrations_dir": "../../../frontend/d1/migrations"
 				}
 			],
 			"queues": {
@@ -53,7 +53,7 @@
 				"AUTH_ALLOWED_DOMAIN": "studenti.unitn.it",
 				"AUTH_TOKEN_TTL_SECONDS": "300",
 				"AUTH_SESSION_TTL_SECONDS": "604800",
-				"AUTH_SESSION_SECRET": "remote-dev-secret"
+				"AUTH_SESSION_SECRET": "remote-dev-prod-secret"
 			}
 		}
 	}

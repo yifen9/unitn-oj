@@ -10,7 +10,7 @@ if (!ENV || !["dev", "prod"].includes(ENV)) {
 }
 
 const TF_DIR = resolve("infra/terraform");
-const WRANGLER_PATH = resolve(`deploy/${ENV}/wrangler.jsonc`);
+const WRANGLER_PATH = resolve(`deploy/cloudflare/${ENV}/wrangler.jsonc`);
 
 function sh(cmd, opts = {}) {
 	return execSync(cmd, { stdio: ["pipe", "pipe", "inherit"], ...opts })
