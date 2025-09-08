@@ -1,102 +1,19 @@
-# API Tests
+# Testing Strategy
 
-## Principles
+* Test framework: Vitest with Vite/SvelteKit integration so that `$lib` aliasing and generated route types behave as in runtime. ([sqlitetutorial.net][12])
+* Unit tests per handler cover: success, input validation errors (`415` for non-JSON, `400` for bad payload), auth errors (`401`/`403`), not found (`404`), and generic `5xx` for dependency failures; problems are asserted as RFC 7807. ([RFC Editor][5], [datatracker.ietf.org][3])
+* Health tests specifically assert `GET/HEAD` semantics, `Cache-Control: no-store`, content negotiation to `406`, and `traceparent` propagation or generation. ([RFC Editor][5], [W3C][6])
 
-* Framework: Vitest
-* Style: unit-level per handler
-* Goal: cover success + error branches for MVP endpoints
+**Auth tests**
+`requestLink`: 415 wrong content-type; 400 invalid JSON; 400 invalid domain; 200 dev returns `magicUrl`; 500 DB error. ([RFC Editor][5])
+`verify`: 400 missing token; 401 not found/expired; 200 success sets cookie; 500 DB error. ([RFC Editor][5])
+`logout`: 200 clears cookie; prod includes `Secure`. ([RFC Editor][5])
 
-## Auth
+**Users**
+`me`: 401 missing/invalid session; 200 success; 500 DB throws. ([RFC Editor][5])
 
-`requestLink`
+**Schools/Courses/Problems**
+`list`: 200 success; 500 DB error. `get`: 200/404/500 DB error. ([RFC Editor][5])
 
-* 415 wrong content-type
-* 400 invalid JSON
-* 400 invalid domain
-* 200 dev returns `magicUrl`
-* 500 DB insert error (prod only)
-
-`verify`
-
-* 400 token missing
-* 401 token not found
-* 401 token expired
-* 200 success, cookie set
-* 500 DB error (prod only)
-
-`logout`
-
-* 200 dev (cookie cleared, no `Secure`)
-* 200 prod (cookie cleared, includes `Secure`)
-
-## Users
-
-`me`
-
-* 401 sid missing/invalid
-* 200 with valid session
-* 500 DB throws (prod only)
-
-## Schools
-
-`list`
-
-* 200 success
-* 500 DB error (prod only)
-
-`get`
-
-* 200 found
-* 404 not found
-* 500 DB error (prod only)
-
-## Courses
-
-`list`
-
-* 200 success
-* 500 DB error (prod only)
-
-`get`
-
-* 200 found
-* 404 not found
-* 500 DB error (prod only)
-
-## Problems
-
-`list`
-
-* 200 success
-* 500 DB error (prod only)
-
-`get`
-
-* 200 found
-* 404 not found
-* 500 DB error (prod only)
-
-## Submissions
-
-`create`
-
-* 400 code missing
-* 401 sid missing/invalid
-* 201 success (queued)
-* 500 DB error (prod only)
-* 500 queue error (prod only)
-
-`get`
-
-* 400 id missing
-* 401 sid missing/invalid
-* 404 not found
-* 403 not owner
-* 200 success
-* 500 DB error (prod only)
-
-`list (me)`
-
-* 401 sid missing/invalid
-* 200 success
-* 500 DB error (prod only)
+**Submissions**
+`create`: 400 code missing; 401 missing/invalid session; 201 queued; 500 DB/queue error. `get`: 400 id missing; 401; 404; 403 not owner; 200 success; 500 DB. ([RFC Editor][5])
