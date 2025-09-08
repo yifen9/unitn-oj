@@ -8,7 +8,9 @@
 	"files": {
 		"includes": [
 			"backend/**/*",
-			"frontend/**/*",
+			"frontend/tests/**/*",
+			"frontend/src/routes/api/**/*",
+			"frontend/src/lib/**/*",
 			"infra/**/*",
 			"tests/**/*",
 			"deploy/**/*",
