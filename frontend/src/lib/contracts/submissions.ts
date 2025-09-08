@@ -9,7 +9,7 @@ export const SubmissionStatus = z.enum([
 	"compile_error",
 	"internal_error",
 ]);
-export const Language = z.enum(["c", "cpp17", "python3", "java17"]);
+export const Language = z.enum(["c", "cpp23"]);
 
 export const SubmissionDto = z.object({
 	submissionId: z.string(),
