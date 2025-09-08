@@ -1,51 +1,71 @@
-export type ErrorCode =
-	| "INVALID_ARGUMENT"
-	| "FAILED_PRECONDITION"
-	| "UNAUTHENTICATED"
-	| "PERMISSION_DENIED"
-	| "NOT_FOUND"
-	| "RESOURCE_EXHAUSTED"
-	| "INTERNAL";
+import { json } from "@sveltejs/kit";
 
-const codeToStatus: Record<ErrorCode, number> = {
-	INVALID_ARGUMENT: 400,
-	FAILED_PRECONDITION: 412,
-	UNAUTHENTICATED: 401,
-	PERMISSION_DENIED: 403,
-	NOT_FOUND: 404,
-	RESOURCE_EXHAUSTED: 429,
-	INTERNAL: 500,
-};
-
-export function httpJson(data: unknown, status = 200, headers?: HeadersInit) {
-	return new Response(JSON.stringify(data), {
-		status,
-		headers: { "content-type": "application/json", ...(headers ?? {}) },
+export function ok<T>(body: T, headers: HeadersInit = {}) {
+	return json(body, {
+		status: 200,
+		headers: { "cache-control": "no-store", ...headers },
 	});
 }
+export function created<T>(location: string, body: T) {
+	return json(body, {
+		status: 201,
+		headers: { Location: location, "cache-control": "no-store" },
+	});
+}
+export function accepted<T>(location: string, body: T) {
+	return json(body, {
+		status: 202,
+		headers: { Location: location, "cache-control": "no-store" },
+	});
+}
+export function noContent(headers: HeadersInit = {}) {
+	return new Response(null, { status: 204, headers });
+}
 
-export function httpError(code: ErrorCode, message: string, status?: number) {
-	const httpStatus = status ?? codeToStatus[code] ?? 500;
-	return httpJson({ ok: false, error: { code, message } }, httpStatus);
+export function problem(
+	status: number,
+	title: string,
+	detail?: string,
+	extra?: Record<string, unknown>,
+) {
+	return new Response(
+		JSON.stringify({ type: "about:blank", title, status, detail, ...extra }),
+		{
+			status,
+			headers: {
+				"content-type": "application/problem+json",
+				"cache-control": "no-store",
+			},
+		},
+	);
 }
 
 export function ensureJsonContentType(req: Request) {
-	const ct = req.headers.get("content-type") || "";
-	if (!/application\/json|.+\+json/i.test(ct)) {
-		throw httpError(
-			"INVALID_ARGUMENT",
-			"content-type must be application/json",
+	const ct = req.headers.get("content-type") ?? "";
+	if (!/application\/json|[a-z0-9.+-]+\/[a-z0-9.+-]+\+json/i.test(ct)) {
+		throw problem(
 			415,
+			"Unsupported Media Type",
+			"content-type must be application/json or *+json",
 		);
 	}
 }
-
-export async function readJson<T = any>(req: Request): Promise<T> {
+export function ensureAcceptsJson(req: Request) {
+	const accept = req.headers.get("accept");
+	if (accept && !/\b(\*\/\*|application\/json)\b/i.test(accept)) {
+		throw problem(
+			406,
+			"Not Acceptable",
+			"client does not accept application/json",
+		);
+	}
+}
+export async function readJson<T = unknown>(req: Request): Promise<T> {
 	ensureJsonContentType(req);
-	const raw = await req.text();
+	ensureAcceptsJson(req);
 	try {
-		return raw ? (JSON.parse(raw) as T) : ({} as T);
+		return (await req.json()) as T;
 	} catch {
-		throw httpError("INVALID_ARGUMENT", "invalid JSON body", 400);
+		throw problem(400, "Bad Request", "invalid JSON body");
 	}
 }
