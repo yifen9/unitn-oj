@@ -8,9 +8,7 @@
 	"files": {
 		"includes": [
 			"backend/**/*",
-			"frontend/tests/**/*",
-			"frontend/src/routes/api/**/*",
-			"frontend/src/lib/**/*",
+			"frontend/**/*",
 			"infra/**/*",
 			"tests/**/*",
 			"deploy/**/*",
@@ -25,5 +23,16 @@
 				"organizeImports": "on"
 			}
 		}
-	}
+	},
+	"overrides": [
+		{
+			"includes": ["frontend/src/app.css"],
+			"linter": {
+				"rules": {
+					"suspicious": { "noUnknownAtRules": "off" },
+					"correctness": { "noUnknownProperty": "off" }
+				}
+			}
+		}
+	]
 }
