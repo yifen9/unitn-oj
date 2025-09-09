@@ -2,6 +2,7 @@
 const msg: string = "Hello, unitn-oj";
 </script>
 
-<main class="container mx-auto p-8">
-	<h1 class="text-3xl font-bold">{msg}</h1>
-</main>
+<section class="prose max-w-none">
+	<h1>{msg}</h1>
+	<p>Center column content placeholder.</p>
+</section>

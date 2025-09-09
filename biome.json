@@ -39,7 +39,10 @@
 			"linter": {
 				"rules": {
 					"style": { "useImportType": "off" },
-					"correctness": { "noUnusedVariables": "off" }
+					"correctness": {
+						"noUnusedVariables": "off",
+						"noUnusedImports": "off"
+					}
 				}
 			}
 		}
