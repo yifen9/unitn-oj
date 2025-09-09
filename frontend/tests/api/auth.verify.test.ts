@@ -202,7 +202,7 @@ describe("POST /api/v1/auth/verify failures", () => {
 			headers: { "content-type": "application/json" },
 			body: JSON.stringify({ token: "abc" }),
 		});
-		const ev = assignEnv(makeEvent("ok", { req, appEnv: "dev" }), baseEnv);
+		const ev = assignEnv(makeEvent("ok", { req, appEnv: "prod" }), baseEnv);
 		const res = await POST(ev);
 		await expectProblem(res, 429, { title: "Rate limit exceeded" });
 	});

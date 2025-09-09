@@ -1,5 +1,5 @@
 <script lang="ts">
-const user = null as { name: string; email: string } | null;
+export let user: { email: string; slug?: string } | null;
 </script>
 
 <div class="card bg-base-200">
@@ -7,11 +7,13 @@ const user = null as { name: string; email: string } | null;
 		<h2 class="card-title text-base">User</h2>
 		{#if user}
 			<div class="space-y-1">
-				<div class="font-medium">{user.name}</div>
-				<div class="text-sm opacity-70">{user.email}</div>
+				<div class="font-medium">{user.email}</div>
+				{#if user.slug}<div class="text-sm opacity-70">{user.slug}</div>{/if}
 			</div>
 			<div class="card-actions">
-				<a href="/logout" class="btn btn-sm w-full">Logout</a>
+				<form method="POST" action="/api/v1/auth/logout" class="w-full">
+					<button class="btn btn-sm w-full" type="submit">Logout</button>
+				</form>
 			</div>
 		{:else}
 			<p class="text-sm opacity-70">You are not logged in.</p>

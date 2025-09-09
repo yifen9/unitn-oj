@@ -2,6 +2,7 @@
 import "../app.css";
 import SideMenu from "$lib/components/SideMenu.svelte";
 import UserPanel from "$lib/components/UserPanel.svelte";
+export let data: { user: { email: string; slug?: string } | null };
 </script>
 
 <header class="navbar fixed top-0 inset-x-0 z-50 h-14 bg-base-100 border-b border-base-300/60">
@@ -9,7 +10,13 @@ import UserPanel from "$lib/components/UserPanel.svelte";
 		<a href="/" class="btn btn-ghost text-lg font-semibold">unitn-oj</a>
 	</div>
 	<div class="navbar-end gap-2">
-		<a href="/login" class="btn btn-sm btn-primary">Login</a>
+		{#if data.user}
+			<form method="POST" action="/api/v1/auth/logout">
+				<button class="btn btn-sm" type="submit">Logout</button>
+			</form>
+		{:else}
+			<a href="/login" class="btn btn-sm btn-primary">Login</a>
+		{/if}
 	</div>
 </header>
 
@@ -21,14 +28,12 @@ import UserPanel from "$lib/components/UserPanel.svelte";
 					<SideMenu />
 				</div>
 			</aside>
-
 			<main class="lg:col-span-8 p-6 min-h-[60dvh]">
 				<slot />
 			</main>
-
 			<aside class="hidden lg:block lg:col-span-2">
 				<div class="sticky top-14 h-[calc(100dvh-3.5rem)] overflow-y-auto p-4">
-					<UserPanel />
+					<UserPanel user={data.user} />
 				</div>
 			</aside>
 		</div>

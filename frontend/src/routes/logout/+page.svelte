@@ -1,4 +1,3 @@
-<section class="prose max-w-none">
-	<h1>Logout</h1>
-	<p>Logout placeholder. Clear session here.</p>
-</section>
+<form method="POST" action="/api/v1/auth/logout">
+	<button class="btn btn-sm" type="submit">Logout</button>
+</form>

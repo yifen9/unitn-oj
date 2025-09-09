@@ -41,3 +41,7 @@ export function getOptionalNumber(
 	const n = Number(v);
 	return Number.isFinite(n) ? n : def;
 }
+
+export function isRateLimitEnabledFrom(bindings: Bindings): boolean {
+	return isProdFrom(bindings);
+}

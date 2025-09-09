@@ -7,6 +7,7 @@ import {
 	getOptionalString,
 	getRequired,
 	isProdFrom,
+	isRateLimitEnabledFrom,
 } from "$lib/api/env";
 import { ok, problemFrom, readJson, withTrace } from "$lib/api/http";
 import { enforceEmailIssueQuota } from "$lib/api/rate_limit";
@@ -54,7 +55,10 @@ export const POST: RequestHandler = async (event) => {
 			3600,
 		);
 		const emailLim = getOptionalNumber(envAll, "RATE_EMAIL_ISSUE_LIMIT", 5);
-		await enforceEmailIssueQuota(DB, email, emailWin, emailLim);
+		const bindings = { DB, APP_ENV };
+		if (isRateLimitEnabledFrom(bindings)) {
+			await enforceEmailIssueQuota(DB, email, emailWin, emailLim);
+		}
 		const ttl = getOptionalNumber(envAll, "AUTH_TOKEN_TTL_SECONDS", 300);
 		const { token } = await createLoginToken(DB, email, ttl);
 		const link = buildMagicLink(event.request, token);

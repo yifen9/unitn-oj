@@ -9,6 +9,7 @@ import {
 	getOptionalString,
 	getRequired,
 	isProdFrom,
+	isRateLimitEnabledFrom,
 } from "$lib/api/env";
 import { ok, problemFrom, readJson, withTrace } from "$lib/api/http";
 import { enforceIpVerifyQuota } from "$lib/api/rate_limit";
@@ -33,7 +34,10 @@ async function verifyCore(event: Parameters<RequestHandler>[0], token: string) {
 	const ipHash = ip ? await hmacHex(hashKey, ip) : "";
 	const ipWin = getOptionalNumber(envAll, "RATE_IP_VERIFY_WINDOW_S", 300);
 	const ipLim = getOptionalNumber(envAll, "RATE_IP_VERIFY_LIMIT", 30);
-	await enforceIpVerifyQuota(DB, ipHash, ipWin, ipLim);
+	const bindings = { DB, APP_ENV };
+	if (isRateLimitEnabledFrom(bindings)) {
+		await enforceIpVerifyQuota(DB, ipHash, ipWin, ipLim);
+	}
 	const row = await findLoginToken(DB, token);
 	if (!row) {
 		await logAuthEvent(DB, hashKey, "login_failure", null, ip, ua, {

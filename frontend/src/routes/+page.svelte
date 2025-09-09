@@ -1,8 +1,8 @@
 <script lang="ts">
-const msg: string = "Hello, unitn-oj";
+const msg = "Hello, World!";
 </script>
 
 <section class="prose max-w-none">
 	<h1>{msg}</h1>
-	<p>Center column content placeholder.</p>
+	<p>Welcome to UNITN OJ.</p>
 </section>

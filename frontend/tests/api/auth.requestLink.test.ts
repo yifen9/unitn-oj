@@ -213,9 +213,16 @@ describe("POST /api/v1/auth/requestLink (rate limit and db binding)", () => {
 		const req = makeRequest("http://localhost/api/v1/auth/requestLink", {
 			method: "POST",
 			headers: { "content-type": "application/json" },
-			body: JSON.stringify({ email: "u@studenti.unitn.it" }),
+			body: JSON.stringify({
+				email: "u@studenti.unitn.it",
+				"cf-turnstile-response": "ok",
+			}),
 		});
-		const ev = assignEnv(makeEvent("ok", { req, appEnv: "dev" }), baseEnv);
+		const ev = assignEnv(makeEvent("ok", { req, appEnv: "prod" }), {
+			...baseEnv,
+			TURNSTILE_SECRET: "tsec",
+			RESEND_API_KEY: "rk",
+		});
 		const res = await POST(ev);
 		await expectProblem(res, 429, { title: "Rate limit exceeded" });
 	});
