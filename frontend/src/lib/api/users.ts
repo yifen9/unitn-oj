@@ -9,6 +9,7 @@ export type UserRow = {
 	name: string | null;
 	description: string | null;
 	is_active: number | boolean;
+	updated_at_s?: number;
 };
 
 export async function ensureUserActive(db: D1Database, email: string) {
@@ -73,4 +74,60 @@ export async function getPublicUserBySlug(
 		.bind(slug)
 		.first<PublicUserRow>();
 	return row ?? null;
+}
+
+export async function listPublicUsers(
+	db: D1Database,
+	limit: number,
+	cursor: string | null,
+): Promise<{
+	items: Array<{
+		id: string;
+		slug: string;
+		name: string | null;
+		description: string | null;
+		updated_at_s: number;
+	}>;
+	nextCursor: string | null;
+}> {
+	let sql =
+		"SELECT id,slug,name,description,updated_at_s FROM users WHERE is_active=1";
+	const args: unknown[] = [];
+	if (cursor) {
+		try {
+			const [t, id] = JSON.parse(atob(cursor)) as [number, string];
+			sql += " AND (updated_at_s < ?1 OR (updated_at_s = ?1 AND id < ?2))";
+			args.push(t, id);
+		} catch {}
+	}
+	sql += " ORDER BY updated_at_s DESC, id DESC LIMIT ?";
+	args.push(limit + 1);
+	const rows = await db
+		.prepare(sql)
+		.bind(...args)
+		.all<{
+			id: string;
+			slug: string;
+			name: string | null;
+			description: string | null;
+			updated_at_s: number;
+		}>();
+	const list = rows.results ?? [];
+	const hasMore = list.length > limit;
+	const items = hasMore ? list.slice(0, limit) : list;
+	const last = items[items.length - 1];
+	const nextCursor =
+		hasMore && last ? btoa(JSON.stringify([last.updated_at_s, last.id])) : null;
+	return { items, nextCursor };
+}
+
+export async function getUserIdBySlug(
+	db: D1Database,
+	slug: string,
+): Promise<string | null> {
+	const row = await db
+		.prepare("SELECT id FROM users WHERE slug=?1 AND is_active=1")
+		.bind(slug)
+		.first<{ id: string }>();
+	return row?.id ?? null;
 }
