@@ -23,5 +23,27 @@
 				"organizeImports": "on"
 			}
 		}
-	}
+	},
+	"overrides": [
+		{
+			"includes": ["frontend/src/app.css"],
+			"linter": {
+				"rules": {
+					"suspicious": { "noUnknownAtRules": "off" },
+					"correctness": { "noUnknownProperty": "off" }
+				}
+			}
+		},
+		{
+			"includes": ["**/*.svelte"],
+			"linter": {
+				"rules": {
+					"correctness": {
+						"noUnusedVariables": "off",
+						"noUnusedImports": "off"
+					}
+				}
+			}
+		}
+	]
 }

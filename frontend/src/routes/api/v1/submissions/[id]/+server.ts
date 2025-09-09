@@ -1,43 +1,42 @@
-import type { RequestHandler } from "@sveltejs/kit";
-import {
-	readSidFromCookie,
-	userIdFromEmail,
-	verifySession,
-} from "../../../../../lib/api/auth";
-import {
-	getOptionalNumber,
-	getRequired,
-	isProd,
-} from "../../../../../lib/api/env";
-import { httpError, httpJson } from "../../../../../lib/api/http";
-import { getOwned } from "../../../../../lib/data/submissions";
+import { assertDb } from "$lib/api/d1";
+import { getBindings } from "$lib/api/env";
+import { ensureAcceptsJson, ok, problemFrom, withTrace } from "$lib/api/http";
+import { getSubmissionById } from "$lib/api/submissions";
+import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async (event) => {
-	const env = event.platform.env as any;
-	const submissionId = event.params.id || "";
-	if (!submissionId) return httpError("INVALID_ARGUMENT", "id required", 400);
-
-	const sid = readSidFromCookie(event.request);
-	if (!sid) return httpError("UNAUTHENTICATED", "sid cookie required", 401);
-
-	const ttl = getOptionalNumber(env, "AUTH_SESSION_TTL_SECONDS", 7 * 24 * 3600);
-	const secret = getRequired(env, "AUTH_SESSION_SECRET");
-	let email = "";
 	try {
-		email = (await verifySession(secret, sid, ttl)).email;
-	} catch {
-		return httpError("UNAUTHENTICATED", "invalid or expired session", 401);
-	}
-	const uid = await userIdFromEmail(email);
-
-	try {
-		const row = await getOwned(env, submissionId);
-		if (!row) return httpError("NOT_FOUND", "submission not found", 404);
-		if (row.userId !== uid)
-			return httpError("PERMISSION_DENIED", "not owner", 403);
-		return httpJson({ ok: true, data: row });
+		ensureAcceptsJson(event.request);
+		const { DB } = getBindings(event);
+		assertDb(DB);
+		const id = String((event.params as { id?: string }).id ?? "").trim();
+		if (!id) throw problemFrom("NOT_FOUND", { detail: "submission not found" });
+		const s = await getSubmissionById(DB, id);
+		if (!s) throw problemFrom("NOT_FOUND", { detail: "submission not found" });
+		return withTrace(
+			ok({
+				ok: true as const,
+				data: {
+					id: s.id,
+					problemId: s.problem_id,
+					userId: s.user_id,
+					status: s.status,
+					language: s.language,
+					code: s.code,
+					codeSizeByte: s.code_size_byte,
+					runTimeMs: s.run_time_ms,
+					runMemoryByte: s.run_memory_byte,
+					createdAt: s.created_at_s,
+					updatedAt: s.updated_at_s,
+				},
+			}),
+			event.request,
+		);
 	} catch (e) {
-		if (isProd(env)) return httpError("INTERNAL", "database error", 500);
-		return httpError("INTERNAL", String(e));
+		if (e instanceof Response) return withTrace(e, event.request);
+		return withTrace(
+			problemFrom("INTERNAL", { detail: "unexpected error" }),
+			event.request,
+		);
 	}
 };

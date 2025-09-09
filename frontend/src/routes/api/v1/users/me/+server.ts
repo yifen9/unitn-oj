@@ -1,44 +1,43 @@
-import type { RequestHandler } from "@sveltejs/kit";
-import { readSidFromCookie, verifySession } from "../../../../../lib/api/auth";
-import {
-	getOptionalNumber,
-	getRequired,
-	isProd,
-} from "../../../../../lib/api/env";
-import { httpError, httpJson } from "../../../../../lib/api/http";
+import { verifySession } from "$lib/api/auth/session";
+import { getCookie } from "$lib/api/cookies";
+import { assertDb } from "$lib/api/d1";
+import { getBindings, getRequired } from "$lib/api/env";
+import { ensureAcceptsJson, ok, problemFrom, withTrace } from "$lib/api/http";
+import { getUserByEmail } from "$lib/api/users";
+import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async (event) => {
-	const env = event.platform.env as any;
-
-	const sid = readSidFromCookie(event.request);
-	if (!sid) return httpError("UNAUTHENTICATED", "sid cookie required", 401);
-
-	const sessionTtl = getOptionalNumber(
-		env,
-		"AUTH_SESSION_TTL_SECONDS",
-		7 * 24 * 3600,
-	);
-	const secret = getRequired(env, "AUTH_SESSION_SECRET");
-
-	let email = "";
 	try {
-		const s = await verifySession(secret, sid, sessionTtl);
-		email = s.email;
-	} catch {
-		return httpError("UNAUTHENTICATED", "invalid or expired session", 401);
-	}
-
-	try {
-		const row = await env.DB.prepare(
-			"SELECT user_id as userId, email, created_at as createdAt FROM users WHERE email=?1",
-		)
-			.bind(email)
-			.first<{ userId: string; email: string; createdAt: number }>();
-
-		if (!row) return httpError("UNAUTHENTICATED", "user not found", 401);
-		return httpJson({ ok: true, data: row });
+		ensureAcceptsJson(event.request);
+		const { DB } = getBindings(event);
+		assertDb(DB);
+		const envAll = (event.platform?.env ?? {}) as Record<string, unknown>;
+		const secret = getRequired(envAll, "AUTH_SESSION_SECRET");
+		const sid = getCookie(event.request, "sid") ?? "";
+		if (!sid)
+			throw problemFrom("UNAUTHENTICATED", { detail: "missing session" });
+		const email = await verifySession(secret, sid);
+		if (!email)
+			throw problemFrom("UNAUTHENTICATED", { detail: "invalid session" });
+		const u = await getUserByEmail(DB, email);
+		if (!u) throw problemFrom("UNAUTHENTICATED", { detail: "user not found" });
+		const body = {
+			ok: true as const,
+			data: {
+				id: u.id,
+				slug: u.slug,
+				email: u.email,
+				name: u.name,
+				description: u.description,
+				is_active: !!u.is_active,
+			},
+		};
+		return withTrace(ok(body), event.request);
 	} catch (e) {
-		if (isProd(env)) return httpError("INTERNAL", "database error", 500);
-		return httpError("INTERNAL", String(e));
+		if (e instanceof Response) return withTrace(e, event.request);
+		return withTrace(
+			problemFrom("INTERNAL", { detail: "unexpected error" }),
+			event.request,
+		);
 	}
 };

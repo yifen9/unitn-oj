@@ -1,18 +1,18 @@
 import type { LayoutLoad } from "./$types";
 
-type User = {
-	userId: string;
-	email: string;
-	createdAt: number;
-	nickname?: string | null;
-};
+type User = { id: string; email: string; slug: string };
 
 export const load: LayoutLoad = async ({ fetch }) => {
 	try {
-		const res = await fetch("/api/v1/users/me", { credentials: "same-origin" });
-		if (res.status === 401) return { user: null };
-		const j = await res.json().catch(() => null);
-		if (j?.ok) return { user: j.data as User };
+		const r = await fetch("/api/v1/users/me", {
+			credentials: "same-origin",
+			headers: { accept: "application/json" },
+		});
+		if (!r.ok) return { user: null };
+		type Ok = { ok: true; data: User };
+		type Err = { ok: false };
+		const j = (await r.json().catch(() => null)) as Ok | Err | null;
+		if (j && "ok" in j && j.ok) return { user: j.data };
 		return { user: null };
 	} catch {
 		return { user: null };

@@ -5,11 +5,9 @@
   "packageManager": "pnpm@8.15.5",
   "type": "module",
   "scripts": {
-    "gen:wrangler:dev":  "node scripts/update-d1-id.mjs dev",
+    "gen:wrangler:dev": "node scripts/update-d1-id.mjs dev",
     "gen:wrangler:prod": "node scripts/update-d1-id.mjs prod",
-
     "tf:init": "terraform -chdir=infra/terraform init",
-
     "tf:new:dev": "terraform -chdir=infra/terraform workspace new dev",
     "tf:select:dev": "terraform -chdir=infra/terraform workspace select dev",
     "tf:plan:dev": "pnpm tf:select:dev || pnpm tf:new:dev && terraform -chdir=infra/terraform plan -var-file=dev.tfvars",
@@ -17,7 +15,6 @@
     "tf:destroy:dev": "pnpm tf:select:dev && terraform -chdir=infra/terraform destroy -var-file=dev.tfvars -auto-approve",
     "tf:destroy:dev:db": "pnpm terraform -chdir=infra/terraform destroy -target=cloudflare_d1_database.db -var-file=dev.tfvars -auto-approve",
     "tf:output:dev:d1": "pnpm tf:select:dev && terraform -chdir=infra/terraform output -raw d1_db_id",
-
     "tf:new:prod": "terraform -chdir=infra/terraform workspace new prod",
     "tf:select:prod": "terraform -chdir=infra/terraform workspace select prod",
     "tf:plan:prod": "pnpm tf:select:prod || pnpm tf:new:prod && terraform -chdir=infra/terraform plan -var-file=prod.tfvars",
@@ -25,44 +22,36 @@
     "tf:destroy:prod": "pnpm tf:select:prod && terraform -chdir=infra/terraform destroy -var-file=prod.tfvars",
     "tf:destroy:prod:db": "pnpm terraform -chdir=infra/terraform destroy -target=cloudflare_d1_database.db -var-file=prod.tfvars",
     "tf:output:prod:d1": "pnpm tf:select:prod && terraform -chdir=infra/terraform output -raw d1_db_id",
-
     "db:reset:local": "pnpm --filter ./frontend db:reset",
     "db:migrate:local": "pnpm --filter ./frontend db:migrate",
     "db:seed:local": "pnpm --filter ./frontend db:seed",
     "db:init:local": "pnpm --filter ./frontend db:init",
-
     "db:reset:dev": "pnpm tf:select:dev && pnpm tf:destroy:dev:db && pnpm tf:apply:dev && pnpm tf:output:dev:d1",
     "db:migrate:dev": "pnpm --filter ./frontend exec wrangler --cwd ../deploy/cloudflare/dev d1 migrations apply DB --env production --remote",
     "db:seed:dev": "pnpm --filter ./frontend exec wrangler --cwd ../deploy/cloudflare/dev d1 execute DB --env production --remote --file ../../../frontend/d1/seed/dev_seed.sql",
     "db:init:dev": "pnpm db:reset:dev && pnpm gen:wrangler:dev && pnpm db:migrate:dev && pnpm db:seed:dev",
-
     "db:reset:prod": "pnpm tf:select:prod && pnpm tf:destroy:prod:db && pnpm tf:apply:prod && pnpm tf:output:prod:d1",
     "db:migrate:prod": "pnpm --filter ./frontend exec wrangler --cwd ../deploy/cloudflare/prod d1 migrations apply DB --env production --remote",
     "db:seed:prod": "pnpm --filter ./frontend exec wrangler --cwd ../deploy/cloudflare/prod d1 execute DB --env production --remote --file ../../../frontend/d1/seed/prod_seed.sql",
     "db:init:prod": "pnpm db:reset:prod && pnpm gen:wrangler:prod && pnpm db:migrate:prod && pnpm db:seed:prod",
-
     "queue:purge:dev": "pnpm --filter ./frontend exec wrangler queues purge unitn-oj-submissions-dev",
     "queue:purge:prod": "pnpm --filter ./frontend exec wrangler queues purge unitn-oj-submissions",
-
     "pages:deploy:dev:prod": "pnpm build && pnpm --filter ./frontend exec wrangler --cwd ../deploy/cloudflare/dev pages deploy --project-name unitn-oj-dev --branch main",
     "pages:deploy:dev:preview": "pnpm build && pnpm --filter ./frontend exec wrangler --cwd ../deploy/cloudflare/dev pages deploy --project-name unitn-oj-dev --branch feature/demo",
     "pages:deploy:prod:prod": "pnpm build && pnpm --filter ./frontend exec wrangler --cwd ../deploy/cloudflare/prod pages deploy --project-name unitn-oj --branch main",
     "pages:deploy:prod:preview": "pnpm build && pnpm --filter ./frontend exec wrangler --cwd ../deploy/cloudflare/prod pages deploy --project-name unitn-oj --branch feature/demo",
-
     "build": "pnpm --filter ./frontend build",
     "dev": "pnpm --filter ./frontend dev",
     "dev:init": "pnpm --filter ./frontend dev:init",
     "lint": "biome check",
     "format": "biome check --write",
-    "test": "vitest --run",
+    "test": "pnpm --filter ./frontend test",
     "check:ci": "pnpm lint && pnpm test",
     "check": "pnpm format && pnpm check:ci",
-
-    "update": "pnpm -r up --latest"
+    "update": "pnpm -r up -i --latest && pnpm install"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.3",
-    "typescript": "^5.9.2",
-    "vitest": "^3.2.4"
+    "typescript": "^5.9.2"
   }
 }

@@ -1,66 +1,61 @@
 <script lang="ts">
-import { onMount } from "svelte";
+import { goto } from "$app/navigation";
+export let data: { sitekey: string };
+let submitting = false;
 
-// biome-ignore lint/style/useConst: svelte bind
-let email: string = "";
-let turnstileToken = "";
-let sending = false;
-let message = "";
-let magicUrl: string | null = null;
+async function submit(e: SubmitEvent) {
+	e.preventDefault();
+	if (submitting) return;
+	submitting = true;
 
-async function requestLink() {
-	sending = true;
-	message = "";
-	magicUrl = null;
-	const res = await fetch("/api/v1/auth/requestLink", {
+	const fd = new FormData(e.currentTarget as HTMLFormElement);
+	const payload: Record<string, unknown> = { email: fd.get("email") };
+	const t = fd.get("cf-turnstile-response");
+	if (t) payload["cf-turnstile-response"] = t;
+
+	const r = await fetch("/api/v1/auth/requestLink", {
 		method: "POST",
-		headers: { "content-type": "application/json" },
+		headers: { "content-type": "application/json", accept: "application/json" },
 		credentials: "same-origin",
-		body: JSON.stringify({ email, turnstileToken }),
+		body: JSON.stringify(payload),
 	});
-	const j = await res.json().catch(() => ({}) as any);
-	if (!res.ok) {
-		message = j?.error?.message || "request failed";
-		sending = false;
+
+	let token: string | undefined;
+	try {
+		const j: unknown = await r.json();
+		if (j && typeof j === "object" && "data" in j) {
+			const d = (j as { data?: unknown }).data;
+			if (d && typeof d === "object" && "magicUrl" in d) {
+				const m = (d as { magicUrl?: unknown }).magicUrl;
+				if (typeof m === "string") {
+					const u = new URL(m, location.origin);
+					token = u.searchParams.get("token") || undefined;
+				}
+			}
+		}
+	} catch {}
+
+	if (token) {
+		await goto(`/auth/verify?token=${encodeURIComponent(token)}`);
 		return;
 	}
-	if (j?.data?.magicUrl) {
-		magicUrl = j.data.magicUrl;
-		message = "Dev mode: Magic link is ready below.";
-	} else {
-		message = "Check your email for the magic link.";
-	}
-	sending = false;
+	location.href = "/login?sent=1";
 }
-
-onMount(() => {
-	const render = () => {
-		(window as any).turnstile?.render("#turnstile-widget", {
-			sitekey: "0x4AAAAAABubm1BqOdDseIMZ",
-			callback: (t: string) => {
-				turnstileToken = t;
-			},
-		});
-	};
-	if ((window as any).turnstile) {
-		render();
-	} else {
-		const s = document.createElement("script");
-		s.src =
-			"https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
-		s.defer = true;
-		s.onload = render;
-		document.head.appendChild(s);
-	}
-});
 </script>
 
-<h1>Sign in</h1>
-<div style="display:flex;flex-direction:column;gap:8px;max-width:420px">
-  <input type="email" bind:value={email} placeholder="your@studenti.unitn.it" required />
-  <div id="turnstile-widget"></div>
-  <button on:click|preventDefault={requestLink} disabled={sending || !turnstileToken}>Request Link</button>
-</div>
-
-{#if message}<p>{message}</p>{/if}
-{#if magicUrl}<p><a href={magicUrl}>Open magic link</a></p>{/if}
+<section class="min-h-[calc(100dvh-3.5rem)] grid place-items-center">
+	<div class="w-full max-w-sm">
+		<form class="space-y-4" on:submit={submit}>
+			<input name="email" type="email" required class="input input-bordered w-full" placeholder="name@studenti.unitn.it" />
+			{#if data.sitekey}
+				<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+				<div class="cf-turnstile" data-sitekey={data.sitekey}></div>
+			{:else}
+				<div class="h-12 rounded-box border border-dashed border-base-300/60 grid place-items-center text-xs opacity-70">
+					Turnstile disabled in dev
+				</div>
+			{/if}
+			<button class="btn btn-primary w-full" disabled={submitting}>Send magic link</button>
+		</form>
+	</div>
+</section>

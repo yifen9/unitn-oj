@@ -1,1 +1,0 @@
-INSERT OR IGNORE INTO schools (school_id, name) VALUES ('unitn', 'University of Trento');

@@ -1,123 +1,97 @@
-import type { RequestHandler } from "@sveltejs/kit";
+import { logAuthEvent } from "$lib/api/audit";
+import { assertDb } from "$lib/api/d1";
+import { sendEmail } from "$lib/api/email/resend";
 import {
+	getBindings,
 	getOptionalNumber,
+	getOptionalString,
 	getRequired,
-	isProd,
-} from "../../../../../lib/api/env";
-import { httpError, httpJson, readJson } from "../../../../../lib/api/http";
-import { logError, logInfo } from "../../../../../lib/api/log";
+	isProdFrom,
+	isRateLimitEnabledFrom,
+} from "$lib/api/env";
+import { ok, problemFrom, readJson, withTrace } from "$lib/api/http";
+import { enforceEmailIssueQuota } from "$lib/api/rate_limit";
+import { clientIp, userAgent } from "$lib/api/request";
+import { assertAllowedDomain, normalizeEmail } from "$lib/api/security/email";
+import { createLoginToken } from "$lib/api/tokens";
+import { verifyTurnstile } from "$lib/api/turnstile";
+import { buildMagicLink } from "$lib/api/url";
+import type { RequestHandler } from "./$types";
 
-function randomHex(len = 32) {
-	const bytes = new Uint8Array(len);
-	crypto.getRandomValues(bytes);
-	return [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
-}
+type Body = {
+	email?: string;
+	turnstileToken?: string;
+	"cf-turnstile-response"?: string;
+};
 
 export const POST: RequestHandler = async (event) => {
-	const { request, platform } = event;
-	const env = platform.env as unknown as { DB: D1Database } & Record<
-		string,
-		string
-	>;
-	const prod = isProd(env);
-
-	let email = "",
-		turnstileToken = "";
 	try {
-		const body = await readJson<{
-			email?: string;
-			turnstileToken?: string;
-			["cf-turnstile-response"]?: string;
-		}>(request);
-		email = String(body.email ?? "")
-			.trim()
-			.toLowerCase();
-		turnstileToken = String(
-			body.turnstileToken ?? body["cf-turnstile-response"] ?? "",
-		);
-	} catch (e) {
-		return e as Response;
-	}
-
-	const allowedDomain = getRequired(env, "AUTH_ALLOWED_DOMAIN");
-	if (!email || !email.endsWith(`@${allowedDomain}`)) {
-		return httpError(
-			"INVALID_ARGUMENT",
-			`email must end with @${allowedDomain}`,
-			400,
-		);
-	}
-
-	if (prod) {
-		const secret = getRequired(env, "TURNSTILE_SECRET");
-		if (!turnstileToken)
-			return httpError("PERMISSION_DENIED", "turnstile token required", 403);
-		const verify = await fetch(
-			"https://challenges.cloudflare.com/turnstile/v0/siteverify",
-			{
-				method: "POST",
-				headers: { "content-type": "application/x-www-form-urlencoded" },
-				body: new URLSearchParams({
-					secret,
-					response: turnstileToken /* remoteip Optional */,
-				}),
-			},
-		)
-			.then((r) => r.json())
-			.catch(() => ({ success: false }));
-		if (!verify?.success)
-			return httpError(
-				"PERMISSION_DENIED",
-				"turnstile verification failed",
-				403,
+		const body = await readJson<Body>(event.request);
+		const envAll = (event.platform?.env ?? {}) as Record<string, unknown>;
+		const { DB, APP_ENV } = getBindings(event);
+		const prod = isProdFrom({ DB, APP_ENV });
+		const allowed = getRequired(envAll, "AUTH_ALLOWED_DOMAIN");
+		const email = normalizeEmail(body.email ?? "");
+		assertAllowedDomain(email, allowed);
+		if (prod) {
+			const tokenFromClient = String(
+				body.turnstileToken ?? body["cf-turnstile-response"] ?? "",
 			);
-	}
-
-	const tokenTtlSeconds = getOptionalNumber(env, "AUTH_TOKEN_TTL_SECONDS", 300);
-	const token = randomHex(32);
-	const expiresAt = Math.floor(Date.now() / 1000) + tokenTtlSeconds;
-	try {
-		await env.DB.prepare(
-			"INSERT INTO magic_tokens (token,email,expires_at) VALUES (?1,?2,?3)",
-		)
-			.bind(token, email, expiresAt)
-			.run();
-	} catch (e) {
-		//logError("d1.insert.magic_tokens.failed", { err: String(e) });
-		return prod
-			? httpError("INTERNAL", "database error", 500)
-			: httpJson({ ok: true, data: { debug: "d1 insert failed" } }, 500);
-	}
-
-	const base = new URL(request.url);
-	base.pathname = "/auth/continue";
-	base.searchParams.set("token", token);
-	const continueUrl = base.toString();
-
-	if (prod) {
-		const apiKey = getRequired(env, "RESEND_API_KEY");
-		const payload = {
-			from: "UNITN OJ <noreply@oj.yifen9.li>",
-			to: email,
-			subject: "Sign in to UNITN OJ",
-			html: `<p>Click the button to sign in:</p><p><a href="${continueUrl}" target="_blank" rel="noopener">Continue sign-in</a></p><p>If you did not request this, you can ignore this email.</p>`,
-		};
-		const r = await fetch("https://api.resend.com/emails", {
-			method: "POST",
-			headers: {
-				authorization: `Bearer ${apiKey}`,
-				"content-type": "application/json",
-			},
-			body: JSON.stringify(payload),
-		});
-		const jr = await r.json().catch(() => ({}));
-		if (!r.ok) {
-			//logError("resend.send.failed", { status: r.status, body: jr });
-			return httpError("INTERNAL", "send email failed", 500);
+			if (!tokenFromClient)
+				throw problemFrom("PERMISSION_DENIED", {
+					detail: "turnstile token required",
+				});
+			const secret = getRequired(envAll, "TURNSTILE_SECRET");
+			const okTurnstile = await verifyTurnstile(tokenFromClient, secret);
+			if (!okTurnstile)
+				throw problemFrom("PERMISSION_DENIED", {
+					detail: "turnstile verification failed",
+				});
 		}
-		//logInfo("resend.send.ok", { id: jr?.id });
-		return httpJson({ ok: true });
+		assertDb(DB);
+		const emailWin = getOptionalNumber(
+			envAll,
+			"RATE_EMAIL_ISSUE_WINDOW_S",
+			3600,
+		);
+		const emailLim = getOptionalNumber(envAll, "RATE_EMAIL_ISSUE_LIMIT", 5);
+		const bindings = { DB, APP_ENV };
+		if (isRateLimitEnabledFrom(bindings)) {
+			await enforceEmailIssueQuota(DB, email, emailWin, emailLim);
+		}
+		const ttl = getOptionalNumber(envAll, "AUTH_TOKEN_TTL_SECONDS", 300);
+		const { token } = await createLoginToken(DB, email, ttl);
+		const link = buildMagicLink(event.request, token);
+		const ip = clientIp(event.request);
+		const ua = userAgent(event.request);
+		const hashKey = prod
+			? getRequired(envAll, "LOG_HASH_KEY")
+			: getOptionalString(envAll, "LOG_HASH_KEY", "dev");
+		await logAuthEvent(DB, hashKey, "token_create", email, ip, ua, {
+			token_len: token.length,
+		});
+		if (prod) {
+			const apiKey = getRequired(envAll, "RESEND_API_KEY");
+			const from = getOptionalString(
+				envAll,
+				"RESEND_FROM",
+				"UNITN OJ <noreply@oj.yifen9.li>",
+			);
+			await sendEmail(
+				apiKey,
+				from,
+				email,
+				"Sign in to UNITN OJ",
+				`<p>Click the button to sign in:</p><p><a href="${link}" target="_blank" rel="noopener">Continue sign-in</a></p><p>If you did not request this, you can ignore this email.</p>`,
+			);
+			return withTrace(ok({ ok: true }), event.request);
+		}
+		return withTrace(ok({ ok: true, data: { magicUrl: link } }), event.request);
+	} catch (e) {
+		if (e instanceof Response) return withTrace(e, event.request);
+		return withTrace(
+			problemFrom("INTERNAL", { detail: "unexpected error" }),
+			event.request,
+		);
 	}
-
-	return httpJson({ ok: true, data: { magicUrl: continueUrl } });
 };

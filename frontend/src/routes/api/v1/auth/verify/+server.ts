@@ -1,107 +1,123 @@
-import type { RequestHandler } from "@sveltejs/kit";
-import { signSession, userIdFromEmail } from "../../../../../lib/api/auth";
+import { logAuthEvent } from "$lib/api/audit";
+import { signSession } from "$lib/api/auth/session";
+import { buildSessionSetCookie } from "$lib/api/cookies";
+import { hmacHex } from "$lib/api/crypto/hmac";
+import { assertDb } from "$lib/api/d1";
 import {
+	getBindings,
 	getOptionalNumber,
+	getOptionalString,
 	getRequired,
-	isProd,
-} from "../../../../../lib/api/env";
-import { httpError, readJson } from "../../../../../lib/api/http";
-import { logError } from "../../../../../lib/api/log";
+	isProdFrom,
+	isRateLimitEnabledFrom,
+} from "$lib/api/env";
+import { ok, problemFrom, readJson, withTrace } from "$lib/api/http";
+import { enforceIpVerifyQuota } from "$lib/api/rate_limit";
+import { clientIp, userAgent } from "$lib/api/request";
+import { normalizeEmail } from "$lib/api/security/email";
+import { consumeLoginToken, findLoginToken } from "$lib/api/tokens";
+import { ensureUserActive } from "$lib/api/users";
+import type { RequestHandler } from "./$types";
 
-export const GET: RequestHandler = async (event) => {
-	const env = event.platform.env as unknown as Record<string, string>;
-	if (isProd(env)) {
-		const u = new URL(event.request.url);
-		const token = u.searchParams.get("token") ?? "";
-		const to = `/auth/continue${token ? `?token=${encodeURIComponent(token)}` : ""}`;
-		return new Response(null, { status: 302, headers: { location: to } });
+async function verifyCore(event: Parameters<RequestHandler>[0], token: string) {
+	const envAll = (event.platform?.env ?? {}) as Record<string, unknown>;
+	const { DB, APP_ENV } = getBindings(event);
+	const prod = isProdFrom({ DB, APP_ENV });
+	if (!token)
+		throw problemFrom("INVALID_ARGUMENT", { detail: "token required" });
+	assertDb(DB);
+	const ip = clientIp(event.request);
+	const ua = userAgent(event.request);
+	const hashKey = prod
+		? getRequired(envAll, "LOG_HASH_KEY")
+		: getOptionalString(envAll, "LOG_HASH_KEY", "dev");
+	const ipHash = ip ? await hmacHex(hashKey, ip) : "";
+	const ipWin = getOptionalNumber(envAll, "RATE_IP_VERIFY_WINDOW_S", 300);
+	const ipLim = getOptionalNumber(envAll, "RATE_IP_VERIFY_LIMIT", 30);
+	const bindings = { DB, APP_ENV };
+	if (isRateLimitEnabledFrom(bindings)) {
+		await enforceIpVerifyQuota(DB, ipHash, ipWin, ipLim);
 	}
-	return handleVerify(event);
-};
-
-const handleVerify: RequestHandler = async (event) => {
-	const { request, platform } = event;
-	const env = platform.env as unknown as { DB: D1Database } & Record<
-		string,
-		string
-	>;
-	const prod = isProd(env);
-
-	let token = new URL(request.url).searchParams.get("token") || "";
-	if (!token && request.method === "POST") {
-		try {
-			const body = await readJson<{ token?: string }>(request);
-			token = String(body.token ?? "").trim();
-		} catch (e) {
-			return e as Response;
-		}
+	const row = await findLoginToken(DB, token);
+	if (!row) {
+		await logAuthEvent(DB, hashKey, "login_failure", null, ip, ua, {
+			reason: "not_found",
+		});
+		throw problemFrom("UNAUTHENTICATED", { detail: "token not found" });
 	}
-	if (!token) return httpError("INVALID_ARGUMENT", "token required", 400);
-
-	let email = "";
-	try {
-		const row = await env.DB.prepare(
-			"SELECT email, expires_at FROM magic_tokens WHERE token=?1",
-		)
-			.bind(token)
-			.first<{ email: string; expires_at: number }>();
-		if (!row) return httpError("UNAUTHENTICATED", "token not found", 401);
-		if (row.expires_at < Math.floor(Date.now() / 1000)) {
-			await env.DB.prepare("DELETE FROM magic_tokens WHERE token=?1")
-				.bind(token)
-				.run()
-				.catch(() => {});
-			return httpError("UNAUTHENTICATED", "token expired", 401);
-		}
-		email = row.email.toLowerCase();
-	} catch (e) {
-		//logError("d1.select.magic_tokens.failed", { err: String(e) });
-		return prod
-			? httpError("INTERNAL", "database error", 500)
-			: httpError("INTERNAL", "database error (dev)", 500);
+	if (row.consumed_at_s != null) {
+		await logAuthEvent(DB, hashKey, "login_failure", null, ip, ua, {
+			reason: "used",
+		});
+		throw problemFrom("UNAUTHENTICATED", { detail: "token already used" });
 	}
-
-	const nowSec = Math.floor(Date.now() / 1000);
-	const userId = await userIdFromEmail(email);
-	try {
-		await env.DB.batch?.([
-			env.DB.prepare(
-				"INSERT INTO users(user_id,email,created_at) VALUES(?1,?2,?3) " +
-					"ON CONFLICT(email) DO UPDATE SET email=excluded.email",
-			).bind(userId, email, nowSec),
-			env.DB.prepare("DELETE FROM magic_tokens WHERE token=?1").bind(token),
-		]);
-	} catch (e) {
-		//logError("d1.batch.user_upsert_delete_token.failed", { err: String(e) });
-		return prod
-			? httpError("INTERNAL", "database error", 500)
-			: httpError("INTERNAL", "database error (dev)", 500);
+	const now = Math.floor(Date.now() / 1000);
+	if (row.expires_at_s < now) {
+		await consumeLoginToken(DB, token);
+		await logAuthEvent(DB, hashKey, "login_failure", null, ip, ua, {
+			reason: "expired",
+		});
+		throw problemFrom("UNAUTHENTICATED", { detail: "token expired" });
 	}
-
-	const sessionTtlSeconds = getOptionalNumber(
-		env,
+	const email = normalizeEmail(row.email);
+	const u = await ensureUserActive(DB, email);
+	await consumeLoginToken(DB, token);
+	const ttl = getOptionalNumber(
+		envAll,
 		"AUTH_SESSION_TTL_SECONDS",
 		7 * 24 * 3600,
 	);
-	const secret = getRequired(env, "AUTH_SESSION_SECRET");
+	const secret = getRequired(envAll, "AUTH_SESSION_SECRET");
 	const sid = await signSession(secret, email);
-
-	const headers = new Headers({ "content-type": "application/json" });
-	const cookieAttrs = [
-		`sid=${sid}`,
-		"HttpOnly",
-		"Path=/",
-		`Max-Age=${sessionTtlSeconds}`,
-		"SameSite=Lax",
-		prod ? "Secure" : "",
-	]
-		.filter(Boolean)
-		.join("; ");
-	headers.append("set-cookie", cookieAttrs);
-
-	return new Response(JSON.stringify({ ok: true, data: { userId, email } }), {
-		headers,
+	await logAuthEvent(DB, hashKey, "login_success", email, ip, ua, {
+		user_id: u.id,
 	});
+	const base = ok({ ok: true, data: { userId: u.id, email, slug: u.slug } });
+	const headers = new Headers(base.headers);
+	headers.append("set-cookie", buildSessionSetCookie("sid", sid, ttl, prod));
+	return new Response(base.body, { status: base.status, headers });
+}
+
+export const GET: RequestHandler = async (event) => {
+	try {
+		const u = new URL(event.request.url);
+		const token = u.searchParams.get("token") ?? "";
+		const { DB, APP_ENV } = getBindings(event);
+		const prod = isProdFrom({ DB, APP_ENV });
+		if (prod) {
+			const to = `/auth/continue${token ? `?token=${encodeURIComponent(token)}` : ""}`;
+			return withTrace(
+				new Response(null, {
+					status: 302,
+					headers: { location: to, "cache-control": "no-store" },
+				}),
+				event.request,
+			);
+		}
+		const resp = await verifyCore(event, token);
+		return withTrace(resp, event.request);
+	} catch (e) {
+		if (e instanceof Response) return withTrace(e, event.request);
+		return withTrace(
+			problemFrom("INTERNAL", { detail: "unexpected error" }),
+			event.request,
+		);
+	}
 };
 
-export const POST: RequestHandler = (event) => handleVerify(event);
+type Body = { token?: string };
+
+export const POST: RequestHandler = async (event) => {
+	try {
+		const body = await readJson<Body>(event.request);
+		const token = String(body.token ?? "").trim();
+		const resp = await verifyCore(event, token);
+		return withTrace(resp, event.request);
+	} catch (e) {
+		if (e instanceof Response) return withTrace(e, event.request);
+		return withTrace(
+			problemFrom("INTERNAL", { detail: "unexpected error" }),
+			event.request,
+		);
+	}
+};

@@ -1,63 +1,46 @@
 <script lang="ts">
-import "../lib/styles/base.scss";
-export let data: { user: { userId: string; email: string } | null };
-
-import { goto } from "$app/navigation";
-
-async function signOut() {
-	await fetch("/api/v1/auth/logout", {
-		method: "POST",
-		credentials: "same-origin",
-	});
-	await goto("/");
-}
+import "../app.css";
+import SideMenu from "$lib/components/SideMenu.svelte";
+import UserPanel from "$lib/components/UserPanel.svelte";
+export let data: { user: { email: string; slug?: string } | null };
 </script>
 
-<div class="app">
-  <header class="header">
-    <nav style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-      <a href="/" aria-label="home">OJ</a>
-      {#if data.user}
-        <div style="display:flex;gap:10px;align-items:center;">
-          <a href="/me">Profile</a>
-          <form method="post" action="/api/v1/auth/logout">
-            <button on:click={signOut}>Sign out</button>
-          </form>
-        </div>
-      {:else}
-        <div style="display:flex;gap:10px;align-items:center;">
-          <a href="/login">Login</a>
-        </div>
-      {/if}
-    </nav>
-  </header>
+<header class="navbar fixed top-0 inset-x-0 z-50 h-14 bg-base-100 border-b border-base-300/60">
+	<div class="navbar-start">
+		<a href="/" class="btn btn-ghost text-lg font-semibold">unitn-oj</a>
+	</div>
+	<div class="navbar-end gap-2">
+		{#if data.user}
+			<a href="/users/me" class="btn btn-sm btn-ghost">Profile</a>
+			<form method="POST" action="/api/v1/auth/logout">
+				<button class="btn btn-sm" type="submit">Logout</button>
+			</form>
+		{:else}
+			<a href="/login" class="btn btn-sm btn-primary">Login</a>
+		{/if}
+	</div>
+</header>
 
-  <main class="main">
-    <aside class="left">
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <a href="/">Home</a>
-        <a href="/courses">Courses</a>
-        {#if data.user}<a href="/me/submissions">Submissions</a>{/if}
-      </div>
-    </aside>
-
-    <section class="center">
-      <slot />
-    </section>
-
-    <aside class="right">
-      {#if data.user}
-        <div>
-          <div>Signed</div>
-          <div style="word-break:break-all;">{data.user.email}</div>
-        </div>
-      {:else}
-        <div>Unsigned</div>
-      {/if}
-    </aside>
-  </main>
-
-  <footer class="footer">
-    <div>footer</div>
-  </footer>
+<div class="pt-14 min-h-dvh bg-base-100 text-base-content">
+	<div class="w-full">
+		<div class="grid grid-cols-1 lg:grid-cols-12 divide-x divide-base-300/60">
+			<aside class="hidden lg:block lg:col-span-2">
+				<div class="sticky top-14 h-[calc(100dvh-3.5rem)] overflow-y-auto">
+					<SideMenu />
+				</div>
+			</aside>
+			<main class="lg:col-span-8 p-6 min-h-[60dvh]">
+				<slot />
+			</main>
+			<aside class="hidden lg:block lg:col-span-2">
+				<div class="sticky top-14 h-[calc(100dvh-3.5rem)] overflow-y-auto p-4">
+					<UserPanel user={data.user} />
+				</div>
+			</aside>
+		</div>
+	</div>
 </div>
+
+<footer class="border-t border-base-300/60 bg-base-100">
+	<div class="px-4 py-6 text-sm opacity-70">footer placeholder</div>
+</footer>

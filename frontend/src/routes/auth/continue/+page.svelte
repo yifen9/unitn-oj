@@ -1,36 +1,30 @@
 <script lang="ts">
 import { onMount } from "svelte";
+import { goto } from "$app/navigation";
+import { page } from "$app/stores";
 
-let token = "";
-let err = "";
-let ok = false;
+let state: "idle" | "verifying" | "done" | "error" = "idle";
 
-onMount(() => {
-	const u = new URL(window.location.href);
-	token = u.searchParams.get("token") ?? "";
-});
-
-async function confirm() {
-	err = "";
+onMount(async () => {
+	state = "verifying";
+	const token = $page.url.searchParams.get("token") || "";
 	const r = await fetch("/api/v1/auth/verify", {
 		method: "POST",
-		headers: { "content-type": "application/json" },
+		headers: { "content-type": "application/json", accept: "application/json" },
+		credentials: "include",
 		body: JSON.stringify({ token }),
 	});
-	if (!r.ok) {
-		const j = await r.json().catch(() => ({}));
-		err = j?.error?.message ?? "Verify failed";
-		return;
+	if (r.ok) {
+		state = "done";
+		await goto("/", { invalidateAll: true });
+	} else {
+		state = "error";
 	}
-	ok = true;
-	window.location.href = "/";
-}
+});
 </script>
 
-<h1>Confirm sign-in</h1>
-{#if token}
-  <button on:click={confirm}>Confirm & sign in</button>
-{:else}
-  <p>Missing token.</p>
-{/if}
-{#if err}<p>{err}</p>{/if}
+<section class="prose max-w-none">
+	<h1>Continue sign-in</h1>
+	{#if state === "verifying"}<p>Verifying…</p>{/if}
+	{#if state === "error"}<p>Something went wrong.</p>{/if}
+</section>
