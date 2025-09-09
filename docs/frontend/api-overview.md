@@ -1,8 +1,8 @@
 # API Overview
 
-> Version: `v1` (base path: `/api/v1/`), except `/api/health` which is unversioned for operational readiness. ([google.aip.dev][1])
+> Version: `v1` (base path: `/api/v1/`), except `/api/health` which is unversioned for operational readiness. Google’s AIP recommends URI-segment versioning and keeping one GA “latest” at a time. ([aip.dev][1])
 
-All successful responses use `application/json` and follow a small envelope for consistency; all errors use `application/problem+json` (RFC 7807). ([Google Cloud][2], [datatracker.ietf.org][3])
+All successful responses use `application/json` with a minimal envelope; all errors use `application/problem+json` per **RFC 9457** (which **obsoletes RFC 7807**). Servers **MUST** set the appropriate `Content-Type`. ([datatracker.ietf.org][2])
 
 Success
 
@@ -22,33 +22,31 @@ Error
 }
 ```
 
-Error bodies follow RFC 7807; servers SHOULD select an appropriate problem `type` URI and MUST set `Content-Type: application/problem+json`. ([datatracker.ietf.org][3])
+Error bodies follow RFC 9457; custom members are allowed for machine-readable details. ([rfc-editor.org][3])
 
 ## Versioning
 
-Use a URI segment `v1` for the base path and evolve compatibly; breaking changes ship as `v2`. Keep one “latest” GA version and phase out preview versions quickly. ([google.aip.dev][1])
+Use `v1` as the base path and evolve compatibly; ship breaking changes as `v2`. Keep a single “latest” GA version; deprecate previews quickly. ([aip.dev][1])
 
 ## Media types & content negotiation
 
-Clients SHOULD send `Accept: application/json`; the server MAY also honor any `+json` media type per structured syntax suffix (e.g. `application/problem+json`). If the `Accept` header excludes JSON, the server returns `406 Not Acceptable`. ([datatracker.ietf.org][4])
+Clients SHOULD send `Accept: application/json`. The server MAY honor `+json` types via the structured syntax suffix (e.g., `application/problem+json`). If `Accept` excludes JSON, respond `406 Not Acceptable`. ([datatracker.ietf.org][4])
 
 ## HTTP status
 
-Use standard codes: `200` for successful reads, `201` for creations, `401` for missing/invalid session, `403` for forbidden, `404` for not found, `415` if the request body is not JSON, `5xx` for server-side failures. ([RFC Editor][5])
+Use standard semantics: `200` for successful reads, `201` for creations, `401` for missing/invalid session, `403` for forbidden, `404` for not found, `415` for non-JSON request bodies, and `5xx` for server-side failures. ([rfc-editor.org][5])
 
 ## Caching
 
-Unless documented otherwise, endpoints return `Cache-Control: no-store` to prevent intermediaries or clients from reusing representations that could become stale, especially for health checks and auth flows.
+Unless documented otherwise, endpoints return `Cache-Control: no-store` to avoid reuse of potentially stale representations (notably health, auth, and session-scoped reads). ([MDN Web Docs][6])
 
 ## Tracing
 
-Requests may include `traceparent`; the server will echo the incoming value or generate a new one in W3C Trace Context format to help end-to-end correlation. ([W3C][6])
+Requests may include `traceparent`. The server will echo the incoming value or generate a new one in **W3C Trace Context** format to support end-to-end correlation. ([W3C][7])
 
 ## Authentication
 
-Session cookie: `sid`, set on successful login; attributes include `HttpOnly; Path=/; SameSite=Lax; Max-Age=<env>` and `Secure` in production. Sign-in is limited to `@studenti.unitn.it` accounts. ([Google Cloud][2], [RFC Editor][5])
-
-In development, the magic link is returned in the response for convenience; in production, it is delivered via email and only a generic success is returned. ([Google Cloud][2])
+A session cookie named `sid` is set on successful login. Attributes: `HttpOnly; Path=/; SameSite=Lax; Max-Age=<env>` and `Secure` in production. Sign-in is restricted to `@studenti.unitn.it`. In development, the magic link is returned inline for convenience; in production, only a generic success is returned and the link is delivered by email. ([Google Cloud][8])
 
 ---
 
@@ -58,21 +56,17 @@ In development, the magic link is returned in the response for convenience; in p
 
 ### `GET /api/health`
 
-Returns `200` with `{ "ok": true, "data": { "db": "ok", "time": <epoch> } }` if the database is reachable; returns `503` with `application/problem+json` if dependencies are unavailable. `Cache-Control: no-store`. ([Cloudflare Docs][7], [RFC Editor][5])
-
-If the request’s `Accept` excludes JSON (including all `+json` types), the server returns `406` with a problem document. ([datatracker.ietf.org][8])
+Returns `200` with `{ "ok": true, "data": { "db": "ok" | "skipped", "time": <epoch> } }` when dependencies are reachable; otherwise `503` with a problem document. Always `Cache-Control: no-store`. If `Accept` excludes JSON (including all `+json` types), return `406` with a problem document. ([rfc-editor.org][5], [datatracker.ietf.org][4])
 
 ### `HEAD /api/health`
 
-Returns `200` with no body when healthy; otherwise `503`, no body; always `Cache-Control: no-store`. ([RFC Editor][5])
-
-> Rationale: Keeping health unversioned avoids breaking automation and aligns with operational probes that expect a stable path. ([google.aip.dev][1])
+Returns `200` (healthy) or `503` (unhealthy) with no body; always `Cache-Control: no-store`. Rationale: an unversioned health path avoids breaking automation and aligns with operational probes that expect a stable URL. ([aip.dev][1])
 
 ---
 
 ## Auth
 
-All request bodies MUST be `application/json`; otherwise return `415` with a problem document. ([RFC Editor][5])
+All request bodies MUST be `application/json`; otherwise return `415` with a problem document. ([rfc-editor.org][5])
 
 ### `POST /api/v1/auth/requestLink`
 
@@ -82,33 +76,37 @@ Input
 { "email": "user@studenti.unitn.it" }
 ```
 
-Output (dev)
+Output (development)
 
 ```json
 { "ok": true, "data": { "magicUrl": "https://.../auth/verify?token=..." } }
 ```
 
-Output (prod)
+Output (production)
 
 ```json
 { "ok": true }
 ```
 
-Issues a one-time token for the provided email if the domain is allowed; dev returns the `magicUrl`, prod sends email only. ([Google Cloud][2])
+Issues a one-time login token if the email domain is allowed. In development the `magicUrl` is returned; in production, the server sends mail and returns a generic success. ([Google Cloud][8])
 
 ### `GET /api/v1/auth/verify?token=…`
 
-On success, upserts the user, establishes a session, sets `sid` cookie, and returns:
+### `POST /api/v1/auth/verify`
+
+Verifies a one-time token, upserts the user, establishes a session, and sets the `sid` cookie.
+
+Success
 
 ```json
 { "ok": true, "data": { "userId": "u_...", "email": "user@studenti.unitn.it" } }
 ```
 
-On invalid/expired token, returns `401` with a problem document. ([RFC Editor][5])
+Invalid/expired tokens return `401` with a problem document. ([rfc-editor.org][5])
 
 ### `POST /api/v1/auth/logout`
 
-Clears the `sid` cookie; returns `{ "ok": true }`. In production the cookie is set/cleared with `Secure`. ([RFC Editor][5])
+Clears the `sid` cookie and returns `{ "ok": true }`. In production the cookie is set/cleared with `Secure`. ([rfc-editor.org][5])
 
 ---
 
@@ -116,13 +114,25 @@ Clears the `sid` cookie; returns `{ "ok": true }`. In production the cookie is s
 
 ### `GET /api/v1/users/me`
 
-Returns the authenticated user or `401` if the session is missing/invalid. Response:
+Returns the authenticated user or `401` if the session is missing/invalid.
 
 ```json
-{ "ok": true, "data": { "userId": "u_...", "email": "..." } }
+{ "ok": true, "data": { "id": "u_...", "slug": "alice", "email": "…" } }
 ```
 
-Use `403` for authenticated-but-forbidden access to other users’ resources. ([RFC Editor][5])
+Use `403` for authenticated-but-forbidden access to other users’ resources. ([rfc-editor.org][5])
+
+### `GET /api/v1/users/{slug}`
+
+Public, cache-negotiated read (ETag/If-None-Match supported by the handler), returning basic profile fields; `404` if not found. Slugs are stable, URL-safe identifiers intended for discovery and navigation. ([aip.dev][1])
+
+### `GET /api/v1/users`
+
+Lists users with basic fields; future versions may introduce pagination tokens and filters consistent with AIP-158/160. ([aip.dev][9], [Google AIP][10])
+
+### `GET /api/v1/users/{slug}/submissions`
+
+Returns public submissions for a given user, newest first. Authorization rules may further restrict fields in non-public scenarios. ([Google Cloud][8])
 
 ---
 
@@ -130,41 +140,39 @@ Use `403` for authenticated-but-forbidden access to other users’ resources. ([
 
 ### `GET /api/v1/schools`
 
-Returns an array of schools:
+Returns an array of schools (id/slug/name/updated\_at). List endpoints are designed to adopt cursor pagination in a future revision (AIP-158). ([aip.dev][9])
 
-```json
-{ "ok": true, "data": [ { "id": "school_…", "slug": "unitn", "name": "University of Trento" } ] }
-```
+### `GET /api/v1/schools/{school}`
 
-List endpoints SHOULD be pageable in future versions; keep the representation resource-oriented. ([Google Cloud][2])
-
-### `GET /api/v1/schools/{id}`
-
-Returns the school or `404` if not found. Resource names should remain stable identifiers. ([google.aip.dev][9])
+Retrieves a school by **slug**; `404` if not found. Slug-based resource naming supports human-readable discovery while remaining URL-safe. ([aip.dev][1])
 
 ---
 
 ## Courses
 
-### `GET /api/v1/courses?schoolId=…`
+### `GET /api/v1/schools/{school}/courses`
 
-Lists courses, optionally filtered by `schoolId`. Keep filtering parameters simple and additive. ([Google Cloud][2])
+Lists courses under a school (by school **slug**). Future revisions may add pagination and filtering (AIP-158/160). ([aip.dev][9], [Google AIP][10])
 
-### `GET /api/v1/courses/{id}`
+### `GET /api/v1/schools/{school}/courses/{course}`
 
-Returns one course by id; `404` if not found. ([RFC Editor][5])
+Retrieves a course by `{school slug}/{course slug}`; `404` if not found. Hierarchical URIs mirror containment and improve navigability. ([aip.dev][1])
 
 ---
 
 ## Problems
 
-### `GET /api/v1/courses/{courseId}/problems`
+### `GET /api/v1/schools/{school}/courses/{course}/problems`
 
-Lists problems under the course. Resource nesting should reflect containment. ([google.aip.dev][9])
+Lists problems under a course (by slugs). This endpoint is for discovery/navigation. ([aip.dev][1])
 
-### `GET /api/v1/courses/{courseId}/problems/{id}`
+### `GET /api/v1/schools/{school}/courses/{course}/problems/{problem}`
 
-Returns one problem; `404` if not found. Problem metadata includes language limits, code/time/memory limits, and an `artifact` JSON for judge inputs. ([Cloudflare Docs][10])
+Retrieves a problem by three slugs. The response contains metadata (name/description), language limits, code/time/memory limits, and an optional structured `artifact` (JSON). ([Cloudflare Docs][11])
+
+### `GET /api/v1/problems/{id}`
+
+Retrieves a problem by **id** (stable identifier). ID-based paths support “stable addressing” from logs, queues, or emails without requiring the hierarchical context. This dual model—slug for discovery, id for stability—follows common AIP guidance on resource names. ([aip.dev][1])
 
 ---
 
@@ -172,13 +180,13 @@ Returns one problem; `404` if not found. Problem metadata includes language limi
 
 ### `POST /api/v1/problems/{id}/submissions`
 
-Creates a submission for the problem; body:
+Creates a submission for a problem id; body:
 
 ```json
 { "code": "…", "language": "cpp23" }
 ```
 
-Response (201)
+Response (`201 Created`)
 
 ```json
 {
@@ -193,20 +201,25 @@ Response (201)
 }
 ```
 
-Servers enqueue an asynchronous judge task and return `201 Created` with the resource representation; failures return `500` with a problem document. ([RFC Editor][5])
+The server enqueues an asynchronous judge task and returns `201` with the resource representation; failures return a problem document. ([rfc-editor.org][5])
 
 ### `GET /api/v1/submissions/{id}`
 
-Returns the submission if the requester is the owner; else `403`; `404` if not found. ([RFC Editor][5])
+Retrieves a submission by id (public fields). If private data exists, apply authorization (owner-only `403`). `404` if not found. ([rfc-editor.org][5])
 
-### `GET /api/v1/users/me/submissions`
+### `GET /api/v1/problems/{id}/submissions`
 
-Returns the authenticated user’s submissions ordered by time descending. ([Google Cloud][2])
+Lists public submissions for a given problem (newest first). ([Google Cloud][8])
+
+### `GET /api/v1/users/{slug}/submissions`
+
+Lists public submissions for a given user (newest first). ([Google Cloud][8])
+
+> Notes on lists: while the current API supports a simple `limit`, future versions are expected to adopt **AIP-158** token-based pagination and optional **AIP-160** filters. ([aip.dev][9], [Google AIP][10])
 
 ---
 
 # Error Model
 
-* All errors use RFC 7807: `type`, `title`, `status`, `detail`, `instance`; custom members are allowed for machine-readable fields (e.g., `code`). ([datatracker.ietf.org][3])
-* `Content-Type: application/problem+json`; when `Accept` excludes JSON, return `406` with a problem document to explain negotiation failure. ([datatracker.ietf.org][4])
-* JSON family is recognized via the `+json` structured syntax suffix, so `application/problem+json` is valid for negotiation and clients SHOULD accept it. ([datatracker.ietf.org][4], [RFC Editor][11])
+* All errors use **RFC 9457** (`type`, `title`, `status`, `detail`, `instance`), with optional custom members. Use `Content-Type: application/problem+json`. When `Accept` excludes JSON, respond `406` with a problem document to explain negotiation failure. ([datatracker.ietf.org][2])
+* JSON family is recognized via the `+json` structured syntax suffix, so `application/problem+json` participates in negotiation correctly. ([datatracker.ietf.org][4])
