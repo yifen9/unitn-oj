@@ -38,6 +38,12 @@
 			"includes": ["**/*.svelte"],
 			"linter": {
 				"rules": {
+					"suspicious": {
+						"noTsIgnore": "off"
+					},
+					"style": {
+						"useConst": "off"
+					},
 					"correctness": {
 						"noUnusedVariables": "off",
 						"noUnusedImports": "off"

@@ -9,8 +9,11 @@ declare global {
 				AUTH_SESSION_TTL_SECONDS?: string;
 				RESEND_API_KEY?: string;
 				RESEND_FROM?: string;
+				TURNSTILE_SITE_KEY?: string;
+				TURNSTILE_SECRET?: string;
 			};
 		}
 	}
 }
+
 export {};

@@ -9,7 +9,7 @@
 				{
 					"binding": "DB",
 					"database_name": "unitn-oj",
-					"database_id": "48fda8e4-a30a-4e75-acd5-f7ecc22a4665",
+					"database_id": "2f443e4f-579a-4c17-a0b9-a66f9de9edb8",
 					"migrations_dir": "../../../frontend/d1/migrations"
 				}
 			],
@@ -28,7 +28,7 @@
 				{
 					"binding": "DB",
 					"database_name": "unitn-oj",
-					"database_id": "48fda8e4-a30a-4e75-acd5-f7ecc22a4665",
+					"database_id": "2f443e4f-579a-4c17-a0b9-a66f9de9edb8",
 					"migrations_dir": "../../../frontend/d1/migrations"
 				}
 			],

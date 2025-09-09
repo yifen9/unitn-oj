@@ -11,7 +11,7 @@
 				{
 					"binding": "DB",
 					"database_name": "unitn-oj-dev",
-					"database_id": "d04624fd-bfd2-4817-a84e-47cc5717e839",
+					"database_id": "b33f516d-d79f-4753-bbbc-906c9bfa43b2",
 					"migrations_dir": "../../../frontend/d1/migrations"
 				}
 			],
@@ -24,7 +24,7 @@
 				]
 			},
 			"vars": {
-				"APP_ENV": "env",
+				"APP_ENV": "dev",
 				"AUTH_ALLOWED_DOMAIN": "studenti.unitn.it",
 				"AUTH_TOKEN_TTL_SECONDS": "300",
 				"AUTH_SESSION_TTL_SECONDS": "604800"
@@ -35,7 +35,7 @@
 				{
 					"binding": "DB",
 					"database_name": "unitn-oj-dev",
-					"database_id": "d04624fd-bfd2-4817-a84e-47cc5717e839",
+					"database_id": "b33f516d-d79f-4753-bbbc-906c9bfa43b2",
 					"migrations_dir": "../../../frontend/d1/migrations"
 				}
 			],
@@ -48,7 +48,7 @@
 				]
 			},
 			"vars": {
-				"APP_ENV": "env",
+				"APP_ENV": "dev",
 				"AUTH_ALLOWED_DOMAIN": "studenti.unitn.it",
 				"AUTH_TOKEN_TTL_SECONDS": "300",
 				"AUTH_SESSION_TTL_SECONDS": "604800"
