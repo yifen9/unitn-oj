@@ -150,3 +150,19 @@ END;
 CREATE INDEX IF NOT EXISTS idx_submissions_user_created    ON submissions(user_id, created_at_s DESC);
 CREATE INDEX IF NOT EXISTS idx_submissions_problem_created ON submissions(problem_id, created_at_s DESC);
 CREATE INDEX IF NOT EXISTS idx_submissions_open_status     ON submissions(status) WHERE status IN ('IQ','IJ'); 
+
+CREATE TABLE IF NOT EXISTS auth_logs (
+  id            TEXT    PRIMARY KEY,
+  type          TEXT    NOT NULL CHECK (type IN ('token_create','token_verify','login_success','login_failure','logout')),
+  email_hash    TEXT,
+  ip_hash       TEXT,
+  user_agent    TEXT,
+  details       TEXT             CHECK (details IS NULL OR json_valid(details)),
+  created_at_s  INTEGER NOT NULL DEFAULT (unixepoch())
+);
+
+CREATE INDEX IF NOT EXISTS idx_auth_logs_created         ON auth_logs(created_at_s DESC);
+CREATE INDEX IF NOT EXISTS idx_auth_logs_email_created   ON auth_logs(email_hash, created_at_s DESC);
+CREATE INDEX IF NOT EXISTS idx_auth_logs_ip_created      ON auth_logs(ip_hash, created_at_s DESC);
+
+CREATE INDEX IF NOT EXISTS idx_tokens_email_created ON tokens(email, created_at_s);
