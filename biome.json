@@ -33,6 +33,15 @@
 					"correctness": { "noUnknownProperty": "off" }
 				}
 			}
+		},
+		{
+			"includes": ["**/*.svelte"],
+			"linter": {
+				"rules": {
+					"style": { "useImportType": "off" },
+					"correctness": { "noUnusedVariables": "off" }
+				}
+			}
 		}
 	]
 }

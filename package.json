@@ -48,7 +48,7 @@
     "test": "pnpm --filter ./frontend test",
     "check:ci": "pnpm lint && pnpm test",
     "check": "pnpm format && pnpm check:ci",
-    "update": "pnpm -r up --latest"
+    "update": "pnpm -r up -i --latest && pnpm install"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.3",
