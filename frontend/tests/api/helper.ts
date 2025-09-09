@@ -1,5 +1,3 @@
-//import type { RequestEvent } from "@sveltejs/kit";
-
 export type DbMode = "ok" | "error" | "none";
 
 export function makeRequest(
