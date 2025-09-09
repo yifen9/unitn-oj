@@ -2,6 +2,15 @@ import { randomHex } from "$lib/api/crypto/random";
 import { problemFrom } from "$lib/api/http";
 import { slugifyEmailLocal } from "$lib/api/slug";
 
+export type UserRow = {
+	id: string;
+	email: string;
+	slug: string;
+	name: string | null;
+	description: string | null;
+	is_active: number | boolean;
+};
+
 export async function ensureUserActive(db: D1Database, email: string) {
 	const ex = await db
 		.prepare("SELECT id, slug FROM users WHERE email=?1")
@@ -29,4 +38,39 @@ export async function ensureUserActive(db: D1Database, email: string) {
 		} catch {}
 	}
 	throw problemFrom("INTERNAL", { detail: "user slug allocation failed" });
+}
+
+export async function getUserByEmail(
+	db: D1Database,
+	email: string,
+): Promise<UserRow | null> {
+	const row = await db
+		.prepare(
+			"SELECT id,email,slug,name,description,is_active FROM users WHERE email=?1",
+		)
+		.bind(email)
+		.first<UserRow>();
+	return row ?? null;
+}
+
+export type PublicUserRow = {
+	id: string;
+	slug: string;
+	name: string | null;
+	description: string | null;
+	updated_at_s: number;
+	is_active: number | boolean;
+};
+
+export async function getPublicUserBySlug(
+	db: D1Database,
+	slug: string,
+): Promise<PublicUserRow | null> {
+	const row = await db
+		.prepare(
+			"SELECT id,slug,name,description,updated_at_s,is_active FROM users WHERE slug=?1 AND is_active=1",
+		)
+		.bind(slug)
+		.first<PublicUserRow>();
+	return row ?? null;
 }
