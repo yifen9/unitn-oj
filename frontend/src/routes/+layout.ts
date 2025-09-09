@@ -9,8 +9,10 @@ export const load: LayoutLoad = async ({ fetch }) => {
 			headers: { accept: "application/json" },
 		});
 		if (!r.ok) return { user: null };
-		const j = await r.json().catch(() => null);
-		if (j?.ok) return { user: j.data as User };
+		type Ok = { ok: true; data: User };
+		type Err = { ok: false };
+		const j = (await r.json().catch(() => null)) as Ok | Err | null;
+		if (j && "ok" in j && j.ok) return { user: j.data };
 		return { user: null };
 	} catch {
 		return { user: null };

@@ -11,6 +11,7 @@ export let data: { user: { email: string; slug?: string } | null };
 	</div>
 	<div class="navbar-end gap-2">
 		{#if data.user}
+			<a href="/users/me" class="btn btn-sm btn-ghost">Profile</a>
 			<form method="POST" action="/api/v1/auth/logout">
 				<button class="btn btn-sm" type="submit">Logout</button>
 			</form>
