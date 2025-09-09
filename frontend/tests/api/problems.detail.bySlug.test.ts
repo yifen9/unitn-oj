@@ -44,11 +44,11 @@ describe("GET /api/v1/schools/{school}/courses/{course}/problems/{problem}", () 
 		expect(res.status).toBe(200);
 		const body = await jsonOf<{
 			ok: true;
-			data: { id: string; limits: { language: unknown; codeSizeByte: number } };
+			data: { id: string; limits: { codeSizeByte: number } };
 		}>(res);
 		expect(body.ok).toBe(true);
 		expect(body.data.id).toBe("pid-1");
-		expect((body.data as any).limits.codeSizeByte).toBe(1024);
+		expect(body.data.limits.codeSizeByte).toBe(1024);
 		expectTraceparentEcho(res, req);
 	});
 
